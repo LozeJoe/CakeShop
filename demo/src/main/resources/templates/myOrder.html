@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>我的订单 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;">
+            <h1 style="font-size:36px;font-weight:700;letter-spacing:-.02em;">我的订单</h1>
+            <div style="display:flex;gap:8px;">
+                <input type="text" id="searchInput" placeholder="订单号/姓名搜索" style="width:200px;padding:8px 16px;border:1.5px solid var(--border);border-radius:var(--radius-full);font-size:13px;">
+                <button class="btn btn-sm btn-primary" onclick="searchOrders()">搜索</button>
+            </div>
+        </div>
+
+        <div th:if="${orderList == null or orderList.isEmpty()}" class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p class="empty-text">暂无订单，去挑选美味蛋糕吧。</p>
+            <a th:href="@{/goods/goodList}" class="btn btn-primary">浏览商品</a>
+        </div>
+
+        <div th:if="${orderList != null and !orderList.isEmpty()}">
+            <div class="card" style="overflow:visible;">
+                <table style="margin-top:0;">
+                    <thead>
+                        <tr>
+                            <th>订单号</th>
+                            <th>下单时间</th>
+                            <th>期望送达</th>
+                            <th>数量</th>
+                            <th>金额</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orderList}">
+                            <td style="font-family:monospace;font-size:12px;color:var(--gold-dark);" th:text="${order.id}"></td>
+                            <td th:text="${#strings.substring(order.datetime, 0, 16)}"></td>
+                            <td>
+                                <span th:if="${order.deliveryTime != null and !order.deliveryTime.isEmpty()}" th:text="${order.deliveryTime}"></span>
+                                <span th:if="${order.deliveryTime == null or order.deliveryTime.isEmpty()}" style="color:var(--caramel);">未指定</span>
+                            </td>
+                            <td th:text="${order.amount} + ' 件'"></td>
+                            <td style="font-weight:600;">&yen;[[${#numbers.formatDecimal(order.total, 0, 2)}]]</td>
+                            <td>
+                                <span class="status-badge" th:classappend="${order.status == 1 ? 'status-unpaid' : (order.status == 2 ? 'status-paid' : (order.status == 3 ? 'status-shipped' : (order.status == 4 ? 'status-shipped' : (order.status == 5 ? 'status-completed' : 'status-cancelled'))))}">
+                                    <span th:if="${order.status == 1}">待支付</span>
+                                    <span th:if="${order.status == 2}">待配送</span>
+                                    <span th:if="${order.status == 3}">待取货</span>
+                                    <span th:if="${order.status == 4}">配送中</span>
+                                    <span th:if="${order.status == 5}">已送达</span>
+                                    <span th:if="${order.status == 6}">已取消</span>
+                                </span>
+                            </td>
+                            <td style="white-space:nowrap;">
+                                <a th:href="@{/order/detail(orderId=${order.id})}" class="btn btn-sm btn-secondary">详情</a>
+                                <button th:if="${order.status == 1}" class="btn btn-sm btn-danger" th:attr="onclick='cancelOrder(\'' + ${order.id} + '\')'">取消</button>
+                                <a th:if="${order.status == 5}" th:href="@{/order/detail(orderId=${order.id})}" class="btn btn-sm btn-primary">评价</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <a th:href="@{/order/myOrder(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
+                <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
+                <a th:href="@{/order/myOrder(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
+                <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+                <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+                   th:href="@{/order/myOrder(page=${i})}"
+                   th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}"
+                   th:text="${i}"></a>
+                <a th:href="@{/order/myOrder(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
+                <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
+                <a th:href="@{/order/myOrder(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
+                <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+
+    <script>
+        function cancelOrder(id){if(confirm('确定取消此订单？商品将还原到购物车。'))window.location.href='/order/cancelOrder?orderId='+id;}
+        function searchOrders(){var k=document.getElementById('searchInput').value.trim();if(k)window.location.href='/order/myOrder?keyword='+encodeURIComponent(k);else window.location.href='/order/myOrder';}
+        document.getElementById('searchInput').addEventListener('keypress',function(e){if(e.key==='Enter')searchOrders();});
+    </script>
+</body>
+</html>

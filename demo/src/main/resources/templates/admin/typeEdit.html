@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>分类编辑 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header th:replace="admin/commons::header"></header>
+            <div class="form-container" style="max-width:480px;">
+                <form th:action="@{/admin/typeSave}" method="post">
+                    <input type="hidden" th:name="id" th:value="${type != null ? type.id : 0}">
+                    <div class="form-group"><label>分类名称</label><input type="text" name="name" th:value="${type != null ? type.name : ''}" required placeholder="请输入分类名称"></div>
+                    <div style="display:flex;gap:12px;margin-top:28px;">
+                        <button type="submit" class="btn btn-primary">保存</button>
+                        <a href="/admin/types" class="btn btn-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

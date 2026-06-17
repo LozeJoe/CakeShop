@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!-- Pâtisserie — 法式烘焙 公共组件 -->
+
+<nav class="navbar" th:fragment="topbar">
+    <div class="navbar-content">
+        <a class="navbar-brand" th:href="@{/goods/goodList}" th:text="${siteName}">CakeShop</a>
+
+        <ul class="navbar-nav">
+            <li><a th:href="@{/goods/goodList}" th:classappend="${active==1?'active':''}">首页</a></li>
+            <li class="dropdown" th:if="${typelist != null}">
+                <a href="#" class="dropdown-toggle">分类 <span class="caret">▾</span></a>
+                <ul class="dropdown-menu">
+                    <li th:each="type:${typelist}">
+                        <a th:href="@{/goods/goodList(typeid=${type.getId()})}" th:text="${type.getName()}"></a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <form th:if="${active == 1}" class="search-box" action="/goods/search" method="get">
+            <input type="text" name="keyword" placeholder="搜索甜点...">
+            <button class="btn btn-sm btn-primary" type="submit">搜索</button>
+        </form>
+
+        <div class="navbar-right">
+            <a th:if="${session.user == null}" th:href="@{/user/login}" class="btn btn-sm btn-outline">登录</a>
+            <a th:if="${session.user == null}" th:href="@{/user/register}" class="btn btn-sm btn-primary">注册</a>
+            <a th:if="${session.user != null}" th:href="@{/user/loginout}" class="btn btn-sm btn-secondary">退出</a>
+            <a th:if="${session.user != null}" th:href="@{/order/myOrder}" class="btn btn-sm btn-secondary">订单</a>
+            <a th:if="${session.user != null}" th:href="@{/user/profile}" class="btn btn-sm btn-secondary">我的</a>
+            <a th:if="${session.user != null && session.user.isadmin == '1'}" th:href="@{/admin/index}" class="btn btn-sm btn-outline">管理</a>
+            <button class="theme-toggle" id="themeToggle" title="切换夜间模式">🌙</button>
+            <a th:href="@{/cart/cartList}" class="cart-badge">
+                <span>🛒</span>
+                <span th:if="${count != null && count > 0}" th:text="${count}"></span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<a th:fragment="floathome" th:href="@{/goods/goodList}" class="float-home" title="返回首页">🏠</a>
+
+<div class="footer" th:fragment="footbar">
+    <div class="footer-content">
+        <p style="margin-bottom:6px;" th:text="${copyright}">Copyright © 2026 CakeShop</p>
+        <p><a th:href="@{/goods/goodList}">首页</a></p>
+    </div>
+    <script>
+    (function(){
+        var t=document.getElementById('themeToggle');
+        var h=document.documentElement;
+        if(localStorage.getItem('theme')==='dark'){h.setAttribute('data-theme','dark');if(t)t.textContent='☀️';}
+        if(t)t.addEventListener('click',function(){
+            if(h.getAttribute('data-theme')==='dark'){h.removeAttribute('data-theme');t.textContent='🌙';localStorage.setItem('theme','light');}
+            else{h.setAttribute('data-theme','dark');t.textContent='☀️';localStorage.setItem('theme','dark');}
+        });
+    })();
+    </script>
+</div>
+<!-- ═══════════════════════════════ AI 客服组件 ═══════════════════════════════ -->
+<div th:fragment="aichat">
+    <div id="ai-avatar"></div>
+    <div id="chat-window">
+        <div class="chat-header">
+            <span>💬 AI 客服 - 小甜</span>
+            <button id="chat-close">&times;</button>
+        </div>
+        <div class="chat-content" id="chat-content">
+            <div class="message ai"><div class="bubble">你好呀！我是蛋糕店的AI客服小甜🍰，有什么可以帮你的吗？</div></div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="输入消息...">
+            <button id="send-btn">➤</button>
+        </div>
+        <div class="chat-footer">Powered by DeepSeek</div>
+    </div>
+    <style>
+    #ai-avatar{position:fixed;bottom:30px;left:30px;width:200px;height:200px;cursor:grab;z-index:999;user-select:none;filter:drop-shadow(0 4px 12px rgba(74,44,23,.2));transition:filter .3s;}
+    #ai-avatar:hover{filter:drop-shadow(0 8px 24px rgba(74,44,23,.3));}
+    #ai-avatar img{width:100%;height:100%;pointer-events:none;}
+    #chat-window{display:none;position:fixed;bottom:110px;left:30px;width:360px;height:480px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.18);z-index:1000;flex-direction:column;overflow:hidden;}
+    .chat-header{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:white;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;font-weight:600;}
+    .chat-header button{background:none;border:none;color:white;font-size:22px;cursor:pointer;line-height:1;}
+    .chat-content{flex:1;padding:14px;overflow-y:auto;background:var(--cream);}
+    .chat-input-area{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--border-light);}
+    .chat-input-area input{flex:1;padding:8px 14px;border:1.5px solid var(--border);border-radius:20px;outline:none;font-size:13px;font-family:inherit;background:var(--cream);}
+    .chat-input-area input:focus{border-color:var(--gold);}
+    .chat-input-area button{width:38px;height:38px;border:none;border-radius:50%;background:var(--gold);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .chat-footer{text-align:center;font-size:11px;color:var(--caramel);padding:6px;background:var(--cream);}
+    .message{display:flex;margin-bottom:12px;}
+    .message.user{justify-content:flex-end;}
+    .message.ai{justify-content:flex-start;}
+    .bubble{max-width:72%;padding:10px 14px;border-radius:18px;line-height:1.5;font-size:13px;word-break:break-word;}
+    .message.ai .bubble{background:#e5e7eb;color:#1f2937;border-bottom-left-radius:4px;}
+    .message.user .bubble{background:var(--gold);color:white;border-bottom-right-radius:4px;}
+    </style>
+    <script>
+    (function(){
+        var a=document.getElementById('ai-avatar');
+        var w=document.getElementById('chat-window');
+        var body=document.getElementById('chat-content');
+        var inp=document.getElementById('chat-input');
+        var btn=document.getElementById('send-btn');
+        var cls=document.getElementById('chat-close');
+        if(!a||!w)return;
+
+        /* 形象图片 */
+        a.innerHTML='<img src="/images/ai-mascot.svg">';
+
+        /* 拖动 */
+        var d=false,sx,sy,ol,ot;
+        a.addEventListener('mousedown',function(e){d=true;sx=e.clientX;sy=e.clientY;ol=a.offsetLeft;ot=a.offsetTop;a.style.cursor='grabbing';});
+        document.addEventListener('mousemove',function(e){if(!d)return;var x=ol+(e.clientX-sx),y=ot+(e.clientY-sy);a.style.left=Math.max(0,Math.min(x,window.innerWidth-64))+'px';a.style.top=Math.max(0,Math.min(y,window.innerHeight-64))+'px';a.style.bottom='auto';});
+        document.addEventListener('mouseup',function(){if(d){a._moved=Math.abs(ol-a.offsetLeft)>4||Math.abs(ot-a.offsetTop)>4;}d=false;a.style.cursor='grab';});
+
+        /* 点击打开 */
+        a.addEventListener('click',function(){if(a._moved){a._moved=false;return;}w.style.display='flex';var r=a.getBoundingClientRect();w.style.left=r.left+'px';w.style.bottom=(window.innerHeight-r.top+16)+'px';w.style.top='auto';});
+
+        /* 关闭 */
+        cls.addEventListener('click',function(){w.style.display='none';});
+
+        function add(text,user){var m=document.createElement('div');m.className='message '+(user?'user':'ai');m.innerHTML='<div class="bubble"></div>';m.querySelector('.bubble').textContent=text;body.appendChild(m);body.scrollTop=body.scrollHeight;}
+
+        function send(){
+            var t=inp.value.trim();if(!t)return;add(t,true);inp.value='';
+            var ld=document.createElement('div');ld.className='message ai';ld.id='aiload';ld.innerHTML='<div class="bubble" style="color:#999;">小甜思考中...</div>';body.appendChild(ld);
+            fetch('/api/chat?message='+encodeURIComponent(t)).then(function(r){return r.text();}).then(function(r){var l=document.getElementById('aiload');if(l)l.remove();add(r,false);}).catch(function(){var l=document.getElementById('aiload');if(l)l.remove();add('网络出问题了 😢',false);});
+        }
+        btn.addEventListener('click',send);inp.addEventListener('keydown',function(e){if(e.key==='Enter')send();});
+    })();
+    </script>
+</div>
+
+</html>

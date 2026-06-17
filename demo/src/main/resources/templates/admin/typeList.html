@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>分类管理 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header th:replace="admin/commons::header"></header>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>分类名称</th><th>操作</th></tr></thead>
+                    <tbody>
+                        <tr th:each="type : ${typeList}">
+                            <td th:text="${type.id}"></td>
+                            <td style="font-weight:500;" th:text="${type.name}"></td>
+                            <td>
+                                <a th:href="@{/admin/typeEdit(id=${type.id})}" class="btn btn-sm btn-warning">编辑</a>
+                                <a th:href="@{/admin/typeDelete(id=${type.id})}" class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

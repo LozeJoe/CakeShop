@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>系统管理 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+    <style>
+        .setting-group{margin-bottom:32px;}
+        .setting-group h3{font-size:15px;font-weight:600;margin-bottom:14px;padding-left:4px;color:var(--black);}
+        .setting-group .hint{font-size:11px;color:var(--light);margin-top:4px;margin-left:4px;}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+        .form-row.single{grid-template-columns:1fr;}
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header class="admin-header">
+                <h1>⚙️ 系统管理</h1>
+            </header>
+
+            <div th:if="${success}" class="alert alert-success" style="margin-bottom:20px;" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" style="margin-bottom:20px;" th:text="${error}"></div>
+
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="@{/admin/saveSettings}" method="post">
+
+                        <div class="setting-group">
+                            <h3>🏪 站点信息</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>网站名称</label>
+                                    <input type="text" name="site_name" th:value="${config.site_name}" th:placeholder="${defaults.site_name}">
+                                    <div class="hint">显示在导航栏和浏览器标签</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>联系电话</label>
+                                    <input type="text" name="contact_phone" th:value="${config.contact_phone}" placeholder="如：400-888-8888">
+                                </div>
+                            </div>
+                            <div class="form-row single" style="margin-top:0;">
+                                <div class="form-group">
+                                    <label>联系邮箱</label>
+                                    <input type="text" name="contact_email" th:value="${config.contact_email}" placeholder="如：hello@cakeshop.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>🏠 首页文案</h3>
+                            <div class="form-group">
+                                <label>Hero 大标题</label>
+                                <input type="text" name="hero_title" th:value="${config.hero_title}" th:placeholder="${defaults.hero_title}">
+                            </div>
+                            <div class="form-group">
+                                <label>Hero 副标题</label>
+                                <textarea name="hero_subtitle" style="height:60px;" th:text="${config.hero_subtitle}" th:placeholder="${defaults.hero_subtitle}"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>📄 显示设置</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>每页商品数</label>
+                                    <input type="number" name="page_size" th:value="${config.page_size}" th:placeholder="${defaults.page_size}" min="4" max="40">
+                                    <div class="hint">首页和分类页每行显示的商品数量（4-40）</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>页脚版权信息</label>
+                                    <input type="text" name="copyright" th:value="${config.copyright}" th:placeholder="${defaults.copyright}">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-group">
+                            <h3>🌐 管理后台语言</h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>当前语言</label>
+                                    <div style="display:flex;gap:10px;align-items:center;padding-top:4px;">
+                                        <a th:href="@{/admin/settings(lang=zh)}" class="btn btn-sm" th:classappend="${#locale.language=='zh'?'btn-primary':'btn-secondary'}">中文</a>
+                                        <a th:href="@{/admin/settings(lang=en)}" class="btn btn-sm" th:classappend="${#locale.language=='en'?'btn-primary':'btn-secondary'}">English</a>
+                                    </div>
+                                    <div class="hint">切换后整个后台管理系统的界面语言将改变</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:8px;border-top:1px solid #f0f0f0;">
+                            <button type="reset" class="btn btn-secondary">恢复</button>
+                            <button type="submit" class="btn btn-primary">💾 保存设置</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

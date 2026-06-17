@@ -1,0 +1,28 @@
+server:
+  port: 0  # random port for tests
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/cookieshop_test?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&createDatabaseIfNotExist=true
+    username: root
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    initialization-mode: always
+    sql-script-encoding: UTF-8
+  thymeleaf:
+    cache: false
+  mvc:
+    hiddenmethod:
+      filter:
+        enabled: true
+
+mybatis:
+  type-aliases-package: com.javaBean
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    com.mapper: debug
+    com.example.demo: debug

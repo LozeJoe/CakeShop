@@ -1,0 +1,24 @@
+# Java / Maven / Gradle
+demo/target/
+demo/.gradle/
+demo/build/
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Reasonix tool cache
+.reasonix/truncated-results/
+
+# Logs
+*.log
+
+# Environment
+.env

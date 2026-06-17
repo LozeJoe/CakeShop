@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>收入明细 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <link type="text/css" rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 顶部深色卡片 */
+        .hero-card{background:linear-gradient(135deg,var(--gold-dark),var(--chocolate));border-radius:var(--radius-lg);padding:24px 20px;margin:16px 0;color:white;box-shadow:var(--shadow-md);}
+        .hero-card .balance{font-size:36px;font-weight:700;font-family:'Georgia',serif;margin-top:4px;}
+        .hero-card .balance-label{font-size:13px;opacity:.8;}
+        .hero-stats{display:flex;gap:16px;margin-top:20px;}
+        .hero-stats .item{flex:1;background:rgba(255,255,255,.12);border-radius:var(--radius-md);padding:14px 12px;text-align:center;}
+        .hero-stats .item .num{font-size:22px;font-weight:700;font-family:'Georgia',serif;}
+        .hero-stats .item .lbl{font-size:11px;opacity:.8;margin-top:2px;}
+
+        /* 今日数据卡片 */
+        .today-card{background:var(--warm-white);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);}
+        .today-card .title{font-size:14px;font-weight:600;color:var(--espresso);margin-bottom:14px;}
+        .today-row{display:flex;gap:16px;}
+        .today-row .box{flex:1;text-align:center;padding:12px;border-radius:var(--radius-md);background:var(--cream);}
+        .today-row .box .num{font-family:'Georgia',serif;font-size:28px;font-weight:700;}
+        .today-row .box .lbl{font-size:12px;color:var(--caramel);margin-top:4px;}
+        .num-gold{color:var(--gold-dark);}
+        .num-green{color:#38a169;}
+
+        /* 近7天标题 */
+        .section-title{font-size:16px;font-weight:700;color:var(--espresso);margin:20px 0 12px;padding-left:4px;border-left:3px solid var(--gold);padding-left:12px;}
+
+        /* 每日记录 */
+        .day-item{background:var(--warm-white);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);display:flex;justify-content:space-between;align-items:center;}
+        .day-item .left{display:flex;flex-direction:column;gap:2px;}
+        .day-item .date{font-size:14px;font-weight:600;color:var(--espresso);}
+        .day-item .orders{font-size:12px;color:var(--caramel);}
+        .day-item .right{text-align:right;}
+        .day-item .total{font-family:'Georgia',serif;font-size:20px;font-weight:700;color:var(--gold-dark);}
+        .day-item .bonus{font-size:11px;color:var(--caramel);}
+
+        .empty-state{padding:60px 0;text-align:center;color:var(--caramel);}
+
+        /* 顶部返回按钮 */
+        .top-bar{display:flex;align-items:center;padding:12px 0;margin-bottom:4px;}
+        .top-bar .back-link{display:flex;align-items:center;gap:6px;color:var(--espresso);text-decoration:none;font-size:14px;font-weight:600;}
+        .top-bar .back-link:hover{color:var(--gold-dark);}
+        /* 底部导航固定 */
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--warm-white);display:flex;border-top:1px solid var(--border-light);z-index:100;}
+        .bottom-nav a{flex:1;text-align:center;padding:12px 0;color:var(--caramel);text-decoration:none;font-size:13px;}
+        .bottom-nav a.active{color:var(--gold-dark);font-weight:600;}
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width:500px;padding-bottom:80px;">
+
+        <!-- 顶部返回栏 -->
+        <div class="top-bar">
+            <a class="back-link" th:href="@{/rider/profile}">‹ 返回我的</a>
+        </div>
+
+        <!-- 顶部深色汇总卡片 -->
+        <div class="hero-card">
+            <div class="balance-label">💰 账户余额</div>
+            <div class="balance">¥<span th:text="${#numbers.formatDecimal(rider.balance,0,2)}">0.00</span></div>
+            <div class="hero-stats">
+                <div class="item">
+                    <div class="num">¥<span th:text="${#numbers.formatDecimal(totalIncome,0,0)}">0</span></div>
+                    <div class="lbl">累计总收入</div>
+                </div>
+                <div class="item">
+                    <div class="num" th:text="${totalCompleted}">0</div>
+                    <div class="lbl">累计完成订单</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 今日实时数据 -->
+        <div class="today-card">
+            <div class="title">📊 今日实时数据</div>
+            <div class="today-row">
+                <div class="box">
+                    <div class="num num-gold" th:text="${todayCount}">0</div>
+                    <div class="lbl">今日订单总数</div>
+                </div>
+                <div class="box">
+                    <div class="num num-green">¥<span th:text="${#numbers.formatDecimal(todayIncome,0,2)}">0.00</span></div>
+                    <div class="lbl">今日配送收入</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 近7天收入记录 -->
+        <div class="section-title">📅 近7天收入记录</div>
+        <div th:if="${dailyStats == null or dailyStats.isEmpty()}" class="empty-state">暂无近7天收入记录</div>
+        <div th:each="day : ${dailyStats}" class="day-item">
+            <div class="left">
+                <span class="date" th:text="${day.day}">2026-06-09</span>
+                <span class="orders" th:text="${day.order_count} + '单完成'">3单完成</span>
+            </div>
+            <div class="right">
+                <div class="total">¥<span th:text="${#numbers.formatDecimal(day.total_income,0,2)}">15.00</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <a th:href="@{/rider/index}">🏠 首页</a>
+        <a th:href="@{/rider/income}" class="active">💰 收入</a>
+        <a th:href="@{/rider/messages}">💬 消息</a>
+        <a th:href="@{/rider/profile}">👤 我的</a>
+    </div>
+</body>
+</html>

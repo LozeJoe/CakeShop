@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>新品上市 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <section class="hero" style="padding:72px 24px 56px;" id="hero">
+        <h1 style="font-size:clamp(32px,5vw,52px);">✨ 新品上市</h1>
+        <p>最新上架的美味甜点</p>
+    </section>
+
+    <div class="container" style="padding-top:0;" id="productGrid">
+        <div th:if="${goods == null or goods.isEmpty()}" class="empty-state">
+            <div class="empty-icon">✨</div>
+            <p class="empty-text">暂无新品</p>
+            <a th:href="@{/goods/goodList}" class="btn btn-primary">返回首页</a>
+        </div>
+        <div class="grid">
+            <div th:each="goods : ${goods}" class="product-card" style="position:relative;">
+                <div class="new-badge">新品</div>
+                <a th:href="@{/goods/detail(id=${goods.id})}" class="img-wrap">
+                    <img th:src="${goods.cover}" th:alt="${goods.name}" loading="lazy">
+                </a>
+                <div class="product-info">
+                    <div class="product-title" th:text="${goods.name}"></div>
+                    <div class="product-intro" th:text="${goods.intro}"></div>
+                    <div class="product-price"><span class="price-symbol">¥</span>[[${#numbers.formatDecimal(goods.price, 0, 2)}]]</div>
+                    <div style="display:flex;gap:10px;margin-top:16px;">
+                        <a th:href="@{/goods/detail(id=${goods.id})}" class="btn btn-sm btn-ghost">查看详情</a>
+                        <form th:action="@{/cart/addToCart}" method="post" style="display:inline;">
+                            <input type="hidden" name="goodId" th:value="${goods.id}">
+                            <input type="hidden" name="from" value="newGoods">
+                            <button type="submit" class="btn btn-sm btn-primary">加入购物车</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div th:if="${totalPages != null && totalPages > 1}" class="pagination">
+            <a th:href="@{/goods/newGoods(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
+            <a th:href="@{/goods/newGoods(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+            <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/goods/newGoods(page=${i})}" th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}" th:text="${i}"></a>
+            <a th:href="@{/goods/newGoods(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
+            <a th:href="@{/goods/newGoods(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+    <script>
+        gsap.from("#hero h1", { y: 60, autoAlpha: 0, duration: .8, ease: "power3.out" });
+        gsap.from("#hero p", { y: 30, autoAlpha: 0, duration: .7, delay: .2 });
+    </script>
+</body>
+</html>

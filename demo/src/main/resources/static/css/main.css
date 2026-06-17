@@ -1,0 +1,33 @@
+@charset "utf-8";
+/* CSS Document */
+img{ border:0;}
+li{ list-style:none;}
+
+#container{ clear:both; width:1237px; height:1200px; overflow:auto; margin:14px auto 0;}
+.sidebar{ float:left; width:320px; height:1200px; overflow:auto;}
+.sidebar h1{ clear:both;}
+.side_list{ height:250px;}
+.main{ float:right; width:900px; height:1200px; overflow:auto;}
+.class_type{ background: right 8px; height:40px; padding:0 0 0 14px;}
+.content{ float:left; width:500px; border-right:1px solid #eff0f4; margin:16px 0 0 10px;}
+.class_date{ font:12px/20px Arial; border-bottom:1px solid #d4d6d9; margin-right:10px;}
+#class_month{ font-weight:600;}
+#class_month a{ margin:0 7px; *margin:0 5px;}
+#class_day{ line-height:30px;}
+.classlist{ clear:both; margin-top:10px;}
+.classlist li{ position:relative; line-height:22px; background: 0 10px; padding:0 130px 0 8px;}
+.classlist li.space{ background:none; height:22px;}
+.classlist li span{ position:absolute; top:-1px; *top:-4px; right:16px;}
+.picnews{ float:right; width:250px; text-align:center; margin:16px 0 0 0;}
+.picnews li{ margin-bottom:10px;}
+
+#friend{ clear:both; width:1237px; height:140px; margin:0 auto;}
+.friend_t{ height:24px; border:1px solid #b3b7ba; background:url(../images/friend_t.gif) repeat-x; padding:4px 0 0 10px;}
+.friend_list{line-height:40px; height:110px; overflow:hidden; background:url(../images/firend_bg.gif) repeat-x; border:1px solid #bfd0d5; border-top:0;}
+.friend_list ul{ margin:14px 10px 0;}
+.friend_list li{ float:left; margin-right:10px; white-space:nowrap;}
+
+#footer{ clear:both; width:947px; margin:14px auto 0; text-align:center;}
+#footer p{ font:14px/24px Arial; color:#999;}
+#footer p.copyright{ color:#333; margin-top:15px;}
+

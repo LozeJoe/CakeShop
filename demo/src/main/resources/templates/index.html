@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${siteName}">CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div th:if="${not #strings.isEmpty(msg)}" class="container" style="padding-bottom:0;">
+        <div class="alert alert-success" th:text="${msg}"></div>
+    </div>
+
+    <section class="hero" id="hero">
+        <div class="hero-decor">♥</div>
+        <h1><span class="accent" th:text="${heroTitle}">每一口都是幸福。</span></h1>
+        <p th:text="${heroSubtitle}">精选优质原料，匠心手作蛋糕，为您的生活增添甜蜜。</p>
+        <div class="hero-actions">
+            <a th:href="@{/goods/topSell}" class="btn btn-lg btn-primary hero-btn">🔥 热销排行</a>
+            <a th:href="@{/goods/newGoods}" class="btn btn-lg btn-secondary hero-btn">✨ 新品上市</a>
+        </div>
+    </section>
+
+    <div class="container" style="padding-top:0;" id="productGrid">
+        <div class="grid">
+            <div th:each="goods,stat : ${goods}" class="product-card reveal" th:attr="data-index=${stat.index}">
+                <a th:href="@{/goods/detail(id=${goods.id})}" class="img-wrap">
+                    <img th:src="${goods.cover}" th:alt="${goods.name}" loading="lazy">
+                </a>
+                <div class="product-info">
+                    <div class="product-title" th:text="${goods.name}"></div>
+                    <div class="product-intro" th:text="${goods.intro}"></div>
+                    <div class="product-price">
+                        <span class="price-symbol">¥</span>
+                        <span th:text="${#numbers.formatDecimal(goods.price, 0, 2)}"></span>
+                    </div>
+                    <div style="display:flex;gap:10px;margin-top:16px;">
+                        <a th:href="@{/goods/detail(id=${goods.id})}" class="btn btn-sm btn-ghost">查看详情</a>
+                        <form th:action="@{/cart/addToCart}" method="post" style="display:inline;">
+                            <input type="hidden" name="goodId" th:value="${goods.id}">
+                            <input type="hidden" name="from" value="index">
+                            <button type="submit" class="btn btn-sm btn-primary">加入购物车</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${totalPages != null && totalPages > 1}" class="pagination" id="pagination">
+            <a th:href="@{/goods/goodList(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
+            <a th:href="@{/goods/goodList(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+            <a th:each="i : ${#numbers.sequence(1, totalPages)}"
+               th:href="@{/goods/goodList(page=${i})}"
+               th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}"
+               th:text="${i}"></a>
+            <a th:href="@{/goods/goodList(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
+            <a th:href="@{/goods/goodList(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Hero 入场：标题 + 按钮从下方淡入
+        const heroTL = gsap.timeline({ defaults: { duration: .8, ease: "power3.out" } });
+        heroTL.from("#hero h1", { y: 60, autoAlpha: 0 }, .2)
+              .from("#hero p", { y: 30, autoAlpha: 0 }, "-=.5")
+              .to(".hero-btn", { autoAlpha: 1, y: 0, stagger: .12, duration: .6 }, "-=.3");
+
+        // 装饰元素缓慢漂移
+        gsap.to(".hero-decor", {
+            y: -30, rotation: 5, duration: 8, ease: "sine.inOut",
+            repeat: -1, yoyo: true
+        });
+
+        // 商品卡片滚动入场
+        const cards = document.querySelectorAll(".product-card");
+        cards.forEach((card, i) => {
+            gsap.from(card, {
+                scrollTrigger: {
+                    trigger: card,
+                    start: "top 88%",
+                    toggleActions: "play none none none",
+                },
+                y: 50, autoAlpha: 0, duration: .7,
+                ease: "power3.out", delay: i * .06
+            });
+        });
+
+        // 导航栏滚动阴影
+        window.addEventListener("scroll", () => {
+            const nav = document.querySelector(".navbar");
+            if (window.scrollY > 10) nav.classList.add("scrolled");
+            else nav.classList.remove("scrolled");
+        });
+    </script>
+    <div th:replace="user/commons::aichat"></div>
+</body>
+</html>

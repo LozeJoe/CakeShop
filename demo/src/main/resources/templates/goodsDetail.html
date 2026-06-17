@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${goods.name} + ' — ' + ${siteName}">商品详情</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container">
+        <div th:if="${not #strings.isEmpty(msg)}" class="alert alert-success" th:text="${msg}"></div>
+
+        <div class="detail-layout" id="detailLayout">
+            <div class="detail-gallery" id="detailGallery">
+                <img th:src="${goods.cover}" th:alt="${goods.name}">
+                <div style="display:flex;gap:12px;margin-top:14px;overflow-x:auto;" th:if="${goods.image1 != null || goods.image2 != null}">
+                    <img th:if="${goods.image1 != null}" th:src="${goods.image1}" style="width:140px;height:140px;border-radius:12px;object-fit:cover;">
+                    <img th:if="${goods.image2 != null}" th:src="${goods.image2}" style="width:140px;height:140px;border-radius:12px;object-fit:cover;">
+                </div>
+            </div>
+            <div class="detail-info" id="detailInfo">
+                <span style="font-size:11px;font-weight:600;color:var(--gold-dark);letter-spacing:.06em;text-transform:uppercase;" th:text="${goods.typeName != null ? goods.typeName : ''}"></span>
+                <h1 th:text="${goods.name}"></h1>
+                <p style="font-size:15px;color:var(--caramel);line-height:1.8;margin-bottom:20px;" th:text="${goods.intro}"></p>
+                <div class="detail-price">¥<span th:text="${#numbers.formatDecimal(goods.price, 0, 2)}"></span></div>
+                <div class="detail-meta">
+                    <span th:if="${goods.stock > 0}">库存充足 · </span>
+                    <span th:if="${goods.stock <= 0}" style="color:var(--rose);">暂时缺货 · </span>
+                    已售 <b th:text="${goods.sales}"></b> 件
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:32px;">
+                    <form th:action="@{/cart/addToCart}" method="post" style="display:inline;" th:if="${goods.stock > 0}">
+                        <input type="hidden" name="goodId" th:value="${goods.id}">
+                        <input type="hidden" name="from" value="detail">
+                        <button type="submit" class="btn btn-lg btn-primary">🛒 加入购物车</button>
+                    </form>
+                    <a th:href="@{/goods/goodList}" class="btn btn-lg btn-secondary">返回列表</a>
+                </div>
+
+                <!-- 评论 -->
+                <div style="border-top:1px solid var(--border-light);padding-top:24px;margin-top:8px;" id="reviewSection">
+                    <h3 style="font-family:'Playfair Display',serif;font-size:20px;color:var(--chocolate);margin-bottom:4px;">顾客评价</h3>
+                    <p style="font-size:13px;color:var(--caramel);margin-bottom:16px;" th:if="${avgRating > 0}">
+                        平均评分：<b th:text="${#numbers.formatDecimal(avgRating, 1, 1)}"></b> / 5 · <span th:text="${reviewCount}"></span> 条评价
+                    </p>
+                    <p style="font-size:13px;color:var(--caramel);margin-bottom:16px;" th:if="${avgRating == 0}">暂无评价，成为第一个评价的人吧！</p>
+
+                    <div th:each="review : ${reviews}" style="padding:12px 0;border-bottom:1px solid var(--border-light);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                            <b th:text="${review.userName}" style="font-size:13px;color:var(--chocolate);"></b>
+                            <span style="font-size:12px;color:var(--gold-dark);"><th:block th:each="i : ${#numbers.sequence(1, review.rating)}">⭐</th:block></span>
+                        </div>
+                        <p th:text="${review.content}" style="font-size:13px;color:var(--caramel);margin-bottom:2px;"></p>
+                        <span style="font-size:11px;color:var(--border);" th:text="${review.createTime}"></span>
+                    </div>
+
+                    <form th:if="${session.user != null}" th:action="@{/review/add}" method="post" style="margin-top:16px;">
+                        <input type="hidden" name="goodsId" th:value="${goods.id}">
+                        <div class="form-group">
+                            <label>评分</label>
+                            <select name="rating" style="width:auto;">
+                                <option value="5">⭐⭐⭐⭐⭐</option>
+                                <option value="4">⭐⭐⭐⭐</option>
+                                <option value="3">⭐⭐⭐</option>
+                                <option value="2">⭐⭐</option>
+                                <option value="1">⭐</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="content" placeholder="分享您对这款甜点的感受…" rows="3"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">发表评价</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        const tl = gsap.timeline({ defaults: { duration: .8, ease: "power3.out" } });
+        tl.from("#detailGallery", { x: -40, autoAlpha: 0 })
+          .from("#detailInfo", { x: 40, autoAlpha: 0 }, "-=.6");
+        gsap.from("#reviewSection", {
+            scrollTrigger: { trigger: "#reviewSection", start: "top 85%" },
+            y: 30, autoAlpha: 0, duration: .6
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>我的订单 - Cake Shop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container">
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 24px;">📦 我的订单</h1>
+        
+        <div th:if="${orderList == null or orderList.isEmpty()}" class="card">
+            <div class="card-body" style="text-align: center; padding: 40px;">
+                <p style="color: var(--text-muted);">暂无订单，快去选购美味蛋糕吧！</p>
+                <a th:href="@{/goods/goodList}" class="btn btn-primary" style="margin-top: 16px;">去购物</a>
+            </div>
+        </div>
+        
+        <div th:each="order : ${orderList}" class="card" style="margin-bottom: 24px;">
+            <div class="card-header">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div>
+                        <span style="font-weight: 600;">订单号：[[${order.id}]]</span>
+                        <span style="margin-left: 20px; color: var(--text-muted);">[[${order.datetime}]]</span>
+                    </div>
+                    <span th:class="'status status-' + (order.status == 1 ? 'warning' : (order.status == 2 ? 'success' : (order.status == 3 ? 'active' : (order.status == 4 ? 'success' : 'danger'))))">
+                        <span th:if="${order.status == 1}">待支付</span>
+                        <span th:if="${order.status == 2}">待配送</span>
+                        <span th:if="${order.status == 3}">待取货</span>
+                        <span th:if="${order.status == 4}">配送中</span>
+                        <span th:if="${order.status == 5}">已送达</span>
+                        <span th:if="${order.status == 6}">已取消</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="card-body">
+                <div style="margin-bottom: 16px;">
+                    <span style="color: var(--text-secondary);">商品数量：</span>
+                    <span>[[${order.amount}]]件</span>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                    <div>
+                        <a th:href="@{/order/detail(orderId=${order.id})}" class="btn btn-secondary btn-sm">查看详情</a>
+                        <a th:if="${order.status == 1}" th:href="@{/order/toPay(orderId=${order.id})}" class="btn btn-primary btn-sm" style="margin-left: 8px;">去支付</a>
+                        <button th:if="${order.status < 3}" class="btn btn-danger btn-sm" style="margin-left: 8px;" th:attr="onclick='cancelOrder(\'' + ${order.id} + '\')'">取消订单</button>
+                        <a th:if="${order.status == 4}" th:href="@{/order/reorder(orderId=${order.id})}" class="btn btn-success btn-sm" style="margin-left: 8px;">再来一单</a>
+                    </div>
+                    <div>
+                        <span style="color: var(--text-secondary);">实付款：</span>
+                        <span class="price price-md">&yen;[[${order.total}]]</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+
+<script>
+    function cancelOrder(orderId) {
+        if (confirm('确定要取消此订单吗？取消后将无法恢复。')) {
+            window.location.href = '/order/cancelOrder?orderId=' + orderId;
+        }
+    }
+</script>
+</body>
+</html>

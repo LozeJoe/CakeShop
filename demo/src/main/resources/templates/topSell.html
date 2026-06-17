@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>热销排行 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <section class="hero" style="padding:72px 24px 56px;" id="hero">
+        <h1 style="font-size:clamp(32px,5vw,52px);">🔥 热销排行</h1>
+        <p>最受欢迎的甜点，销量领先</p>
+    </section>
+
+    <div class="container" style="padding-top:0;max-width:900px;" id="rankingList">
+        <div th:if="${goods == null or goods.isEmpty()}" class="empty-state">
+            <div class="empty-icon">🏆</div>
+            <p class="empty-text">暂无热销商品</p>
+            <a th:href="@{/goods/goodList}" class="btn btn-primary">返回首页</a>
+        </div>
+
+        <div th:each="goods, stat : ${goods}" class="card ranking-item" style="display:flex;align-items:center;padding:20px 24px;margin-bottom:14px;gap:20px;">
+            <div class="ranking-badge" th:classappend="${stat.index} < 3 ? 'rank-' + (${stat.index} + 1) : 'rank-other'" th:text="${stat.index + 1}"></div>
+            <a th:href="@{/goods/detail(id=${goods.id})}">
+                <img th:src="${goods.cover}" style="width:90px;height:90px;border-radius:12px;object-fit:cover;">
+            </a>
+            <div style="flex:1;">
+                <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:600;margin-bottom:4px;color:var(--chocolate);" th:text="${goods.name}"></div>
+                <div style="font-size:13px;color:var(--caramel);margin-bottom:8px;" th:text="${goods.intro}"></div>
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;">&yen;[[${#numbers.formatDecimal(goods.price, 0, 2)}]]</span>
+                    <span style="font-size:13px;color:var(--caramel);">销量：<b style="color:var(--gold-dark);" th:text="${goods.sales}"></b></span>
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <a th:href="@{/goods/detail(id=${goods.id})}" class="btn btn-sm btn-secondary">详情</a>
+                <form th:action="@{/cart/addToCart}" method="post" style="display:inline;">
+                    <input type="hidden" name="goodId" th:value="${goods.id}">
+                    <input type="hidden" name="from" value="topSell">
+                    <button type="submit" class="btn btn-sm btn-primary">加购</button>
+                </form>
+            </div>
+        </div>
+
+        <div th:if="${totalPages != null && totalPages > 1}" class="pagination">
+            <a th:href="@{/goods/topSell(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
+            <a th:href="@{/goods/topSell(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+            <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/goods/topSell(page=${i})}" th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}" th:text="${i}"></a>
+            <a th:href="@{/goods/topSell(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
+            <a th:href="@{/goods/topSell(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
+            <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.from("#hero h1", { y: 60, autoAlpha: 0, duration: .8, ease: "power3.out" });
+        document.querySelectorAll(".ranking-item").forEach((item, i) => {
+            gsap.from(item, {
+                scrollTrigger: { trigger: item, start: "top 88%" },
+                x: -30, autoAlpha: 0, duration: .6, ease: "power2.out", delay: i * .08
+            });
+        });
+    </script>
+</body>
+</html>

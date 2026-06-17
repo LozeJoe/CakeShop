@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>骑手首页 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <link type="text/css" rel="stylesheet" href="/css/style.css">
+    <style>
+        .rider-header{display:flex;justify-content:space-between;align-items:center;padding:16px 0}
+        .rider-header .user{font-weight:600;color:var(--espresso)}
+        .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+        .stat-card{background:var(--warm-white);border-radius:var(--radius-md);padding:14px 10px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border-light)}
+        .stat-card .num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--espresso)}
+        .stat-card .lbl{font-size:11px;color:var(--caramel);margin-top:2px}
+        .tabs{display:flex;gap:0;margin-bottom:16px;overflow-x:auto}
+        .tabs a{flex:1;text-align:center;padding:10px 0;font-size:13px;color:var(--caramel);text-decoration:none;border-bottom:3px solid transparent;position:relative;min-width:60px}
+        .tabs a.active{color:var(--gold-dark);border-bottom-color:var(--gold-dark);font-weight:600}
+        .badge{position:absolute;top:0;right:4px;background:var(--rose);color:white;font-size:10px;min-width:16px;height:16px;line-height:16px;border-radius:8px;text-align:center}
+        .order-card{background:var(--warm-white);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light)}
+        .order-card .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+        .order-card .oid{font-size:12px;color:var(--caramel)}
+        .order-card .info{font-size:13px;color:var(--espresso);margin:6px 0}
+        .order-card .info span{margin-right:12px}
+        .order-card .bot{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+        .order-card .price{font-family:'Playfair Display',serif;font-size:20px;font-weight:700}
+        .order-tag{display:inline-block;padding:3px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:600}
+        .tag-pending{background:var(--butter);color:var(--gold-dark)}
+        .tag-pickup{background:rgba(66,153,225,.12);color:#3182ce}
+        .tag-delivering{background:rgba(66,153,225,.12);color:#3182ce}
+        .tag-completed{background:rgba(72,187,120,.12);color:#38a169}
+        .empty{text-align:center;padding:60px;color:var(--caramel)}
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--warm-white);display:flex;border-top:1px solid var(--border-light);z-index:100;}
+        .bottom-nav a{flex:1;text-align:center;padding:12px 0;color:var(--caramel);text-decoration:none;font-size:13px;}
+        .bottom-nav a.active{color:var(--gold-dark);font-weight:600;}
+
+        /* 顶部深色栏 */
+        .top-bar{background:linear-gradient(135deg,var(--gold-dark),var(--chocolate));border-radius:var(--radius-lg);padding:16px 20px;margin:16px 0;color:white;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow-md);}
+        .top-bar h1{font-size:20px;font-weight:700;}
+        .top-bar .logout-link{color:rgba(255,255,255,.85);font-size:13px;padding:6px 14px;border-radius:var(--radius-full);border:1px solid rgba(255,255,255,.25);text-decoration:none;transition:all .2s;}
+        .top-bar .logout-link:hover{background:rgba(255,255,255,.15);color:white;}
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width:640px;padding-bottom:80px;">
+        <!-- 顶部深色栏 -->
+        <div class="top-bar">
+            <h1>🛵 蛋糕配送</h1>
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:14px;" th:text="${rider.name}">张三</span>
+                <a th:href="@{/rider/logout}" class="logout-link">退出</a>
+            </div>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-row">
+            <div class="stat-card"><div class="num" th:text="${pendingCount}">0</div><div class="lbl">待接单</div></div>
+            <div class="stat-card"><div class="num" th:text="${pickupCount}">0</div><div class="lbl">待取货</div></div>
+            <div class="stat-card"><div class="num" th:text="${deliveringCount}">0</div><div class="lbl">配送中</div></div>
+            <div class="stat-card"><div class="num" th:text="${completedCount}">0</div><div class="lbl">已完成</div></div>
+        </div>
+
+        <!-- 标签切换 -->
+        <div class="tabs">
+            <a th:href="@{/rider/index(tab='pending')}" th:classappend="${tab=='pending'?'active':''}">待接单<span class="badge" th:if="${pendingCount>0}" th:text="${pendingCount}"></span></a>
+            <a th:href="@{/rider/index(tab='pickup')}" th:classappend="${tab=='pickup'?'active':''}">待取货<span class="badge" th:if="${pickupCount>0}" th:text="${pickupCount}"></span></a>
+            <a th:href="@{/rider/index(tab='delivering')}" th:classappend="${tab=='delivering'?'active':''}">配送中</a>
+            <a th:href="@{/rider/index(tab='completed')}" th:classappend="${tab=='completed'?'active':''}">已完成</a>
+        </div>
+
+        <!-- 订单列表 -->
+        <div th:if="${orders.data == null || orders.data.isEmpty()}" class="empty">暂无订单</div>
+        <div th:each="order : ${orders.data}" class="order-card">
+            <div class="row">
+                <span class="oid" th:text="'#'+${order.id}"></span>
+                <span class="order-tag" 
+                      th:classappend="${order.status==2?'tag-pending':(order.status==3?'tag-pickup':(order.status==4?'tag-delivering':(order.status==5?'tag-completed':'tag-pending')))}"
+                      th:text="${order.status==2?'待接单':(order.status==3?'待取货':(order.status==4?'配送中':(order.status==5?'已完成':'未知')))}"></span>
+            </div>
+            <div class="info">
+                <span>📦 <b th:text="${order.amount}"></b>件</span>
+                <span>📍 <span th:text="${order.address}"></span></span>
+            </div>
+            <div class="info">
+                <span>👤 <span th:text="${order.name}"></span></span>
+                <span>📞 <span th:text="${order.phone}"></span></span>
+                <span>🕐 <span th:text="${#strings.substring(order.datetime,0,16)}"></span></span>
+            </div>
+            <div class="bot">
+                <span class="price">¥<span th:text="${#numbers.formatDecimal(order.total,0,2)}"></span></span>
+                <div style="display:flex;gap:8px">
+                    <a th:href="@{/rider/orderDetail(orderId=${order.id})}" class="btn btn-sm btn-ghost">查看详情</a>
+                    <a th:if="${tab=='pending'}" th:href="@{/rider/accept(orderId=${order.id})}" class="btn btn-sm btn-primary">接单</a>
+                    <a th:if="${tab=='pickup'}" th:href="@{/rider/startDelivery(orderId=${order.id})}" class="btn btn-sm btn-primary">确认取货</a>
+                    <a th:if="${tab=='delivering'}" th:href="@{/rider/complete(orderId=${order.id})}" class="btn btn-sm btn-primary">确认送达</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <a th:href="@{/rider/index}" class="active">🏠 首页</a>
+        <a th:href="@{/rider/income}">💰 收入</a>
+        <a th:href="@{/rider/messages}">💬 消息<span th:if="${unreadCount > 0}" style="background:var(--rose);color:white;font-size:10px;min-width:16px;height:16px;line-height:16px;border-radius:8px;display:inline-block;text-align:center;margin-left:4px;" th:text="${unreadCount}"></span></a>
+        <a th:href="@{/rider/profile}">👤 我的</a>
+    </div>
+</body>
+</html>

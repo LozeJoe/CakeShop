@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        #orderMap{width:100%;height:300px;border-radius:12px;margin-top:16px;border:1px solid var(--border);}
+        .review-section{margin-top:24px;padding-top:20px;border-top:1px solid var(--border-light);}
+        .review-section h3{font-size:18px;margin-bottom:16px;color:var(--chocolate);}
+    </style>
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container">
+        <h1 style="font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:28px;">订单详情</h1>
+
+        <div class="card" style="margin-bottom:24px;padding:28px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #f0f0f0;">
+                <span style="font-family:monospace;font-size:15px;font-weight:600;" th:text="'订单号：' + ${order.id}"></span>
+                <span class="status-badge" th:classappend="${order.status == 1 ? 'status-unpaid' : (order.status == 2 ? 'status-paid' : (order.status == 3 ? 'status-shipped' : (order.status == 4 ? 'status-shipped' : (order.status == 5 ? 'status-completed' : 'status-cancelled'))))}">
+                    <span th:if="${order.status == 1}">待支付</span>
+                    <span th:if="${order.status == 2}">待配送</span>
+                    <span th:if="${order.status == 3}">待取货</span>
+                    <span th:if="${order.status == 4}">配送中</span>
+                    <span th:if="${order.status == 5}">已送达</span>
+                    <span th:if="${order.status == 6}">已取消</span>
+                </span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 40px;font-size:14px;">
+                <div><span style="color:var(--caramel);">收件人</span><span style="margin-left:8px;font-weight:500;" th:text="${order.name}"></span></div>
+                <div><span style="color:var(--caramel);">电话</span><span style="margin-left:8px;font-weight:500;" th:text="${order.phone}"></span></div>
+                <div><span style="color:var(--caramel);">地址</span><span style="margin-left:8px;font-weight:500;" th:text="${order.address}"></span></div>
+                <div><span style="color:var(--caramel);">下单时间</span><span style="margin-left:8px;font-weight:500;" th:text="${order.datetime}"></span></div>
+                <div th:if="${order.deliveryTime != null and !order.deliveryTime.isEmpty()}">
+                    <span style="color:var(--caramel);">期望送达</span><span style="margin-left:8px;font-weight:500;color:var(--gold-dark);" th:text="${order.deliveryTime}"></span>
+                </div>
+                <div th:if="${order.commission > 0}">
+                    <span style="color:var(--caramel);">配送费</span><span style="margin-left:8px;font-weight:500;">&yen;[[${#numbers.formatDecimal(order.commission, 0, 2)}]]</span>
+                </div>
+            </div>
+            <!-- 地图 -->
+            <div id="orderMap"></div>
+        </div>
+
+        <div class="card" style="padding:28px;">
+            <h3 style="font-size:17px;font-weight:600;margin-bottom:16px;">商品清单</h3>
+            <table style="margin-top:0;">
+                <thead>
+                    <tr><th>商品ID</th><th>数量</th><th>单价</th><th>小计</th></tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${orderItems}">
+                        <td th:text="${item.goodsId}"></td>
+                        <td th:text="${item.amount}"></td>
+                        <td>&yen;[[${#numbers.formatDecimal(item.price, 0, 2)}]]</td>
+                        <td style="font-weight:600;">&yen;[[${#numbers.formatDecimal(item.price * item.amount, 0, 2)}]]</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid #f0f0f0;">
+                <span style="color:var(--caramel);">订单总价</span>
+                <span style="font-size:28px;font-weight:700;letter-spacing:-.02em;">&yen;[[${#numbers.formatDecimal(order.total, 0, 2)}]]</span>
+            </div>
+        </div>
+
+        <!-- 评价区域 — 仅已送达订单可见 -->
+        <div th:if="${order.status == 5}" class="card review-section" style="padding:28px;">
+            <h3>✍️ 订单评价</h3>
+            <form th:action="@{/order/review}" method="post">
+                <input type="hidden" name="orderId" th:value="${order.id}">
+                <div class="form-group">
+                    <label>评分</label>
+                    <select name="rating" style="width:auto;">
+                        <option value="5">⭐⭐⭐⭐⭐ 非常满意</option>
+                        <option value="4">⭐⭐⭐⭐ 满意</option>
+                        <option value="3">⭐⭐⭐ 一般</option>
+                        <option value="2">⭐⭐ 不满意</option>
+                        <option value="1">⭐ 非常不满意</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>评价内容</label>
+                    <textarea name="content" rows="3" placeholder="分享您对本次订单的体验…"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">提交评价</button>
+            </form>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+            <a th:href="@{/order/myOrder}" class="btn btn-secondary">← 返回订单列表</a>
+            <button th:if="${order.status == 1}" class="btn btn-danger" th:attr="onclick='cancelOrder(\'' + ${order.id} + '\')'">取消订单</button>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+
+    <script>
+        function cancelOrder(id){if(confirm('确定取消此订单？商品将还原到购物车。'))window.location.href='/order/cancelOrder?orderId='+id;}
+
+        // 地图初始化 — 使用 Leaflet + OpenStreetMap (免费免密钥)
+        (function(){
+            var lat = /*[[${order.latitude}]]*/ 0;
+            var lng = /*[[${order.longitude}]]*/ 0;
+            var addr = /*[[${order.address}]]*/ '';
+
+            if (!document.getElementById('orderMap')) return;
+
+            // 如果坐标都是 0，尝试用地址粗略定位（简单模拟，不做真实 geocoding）
+            // 用中国中心点做默认
+            if (lat === 0 && lng === 0) {
+                lat = 39.9042;
+                lng = 116.4074;
+            }
+
+            // 动态加载 Leaflet
+            var css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(css);
+
+            var s = document.createElement('script');
+            s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            s.onload = function(){
+                var map = L.map('orderMap').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                L.marker([lat, lng]).addTo(map).bindPopup(addr || '收货地址').openPopup();
+            };
+            document.body.appendChild(s);
+        })();
+    </script>
+</body>
+</html>

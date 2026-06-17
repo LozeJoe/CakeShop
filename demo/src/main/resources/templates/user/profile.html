@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>个人中心 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container" style="max-width:560px;">
+        <div class="hero" style="padding:32px 0 24px;text-align:left;">
+            <h1 style="font-size:36px;">👤 个人中心</h1>
+        </div>
+
+        <div class="card" style="padding:32px;">
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+            <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+            <form th:action="@{/user/editProfile}" method="post">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" th:value="${user.username}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" name="name" th:value="${user.name}">
+                </div>
+                <div class="form-group">
+                    <label>手机号</label>
+                    <input type="text" name="phone" th:value="${user.phone}">
+                </div>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" name="email" th:value="${user.email}">
+                </div>
+                <div class="form-group">
+                    <label>地址</label>
+                    <input type="text" name="address" th:value="${user.address}">
+                </div>
+                <div class="form-group">
+                    <label>新密码 <small style="color:var(--caramel);">(不修改请留空)</small></label>
+                    <input type="password" name="newPassword" placeholder="留空则不修改密码">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">💾 保存修改</button>
+            </form>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+    <style>
+        .tab-bar{display:flex;gap:0;margin-bottom:20px;border-bottom:2px solid #e8e8ed;}
+        .tab-bar a{padding:10px 20px;font-size:13px;font-weight:500;color:var(--light);text-decoration:none;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;}
+        .tab-bar a:hover{color:var(--black);}
+        .tab-bar a.active{color:var(--blue);border-bottom-color:var(--blue);}
+        .action-group{display:flex;gap:4px;flex-wrap:wrap;}
+        .unverified-row{background:rgba(255,149,0,.03);}
+        .rider-row{background:rgba(0,113,227,.03);}
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header th:replace="admin/commons::header"></header>
+
+            <!-- 标签切换：用户/骑手 -->
+            <div class="tab-bar">
+                <a th:href="@{/admin/users(unverified=true)}" th:classappend="${unverified && filterType == null ? 'active' : ''}">⏳ 待审核</a>
+                <a th:href="@{/admin/users(unverified=false)}" th:classappend="${!unverified && filterType == null ? 'active' : ''}">👥 全部用户</a>
+                <a th:href="@{/admin/users(unverified=false, type='rider')}" th:classappend="${filterType == 'rider' ? 'active' : ''}">🛵 骑手管理</a>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>ID</th><th>用户名</th><th>姓名</th><th>手机</th><th>角色</th><th>状态</th><th>操作</th></tr></thead>
+                    <tbody>
+                        <tr th:each="user : ${userList}" th:classappend="${user.isvalidate != '1' ? 'unverified-row' : (user.isadmin == '2' ? 'rider-row' : '')}">
+                            <td th:text="${user.id}"></td>
+                            <td style="font-weight:500;" th:text="${user.username}"></td>
+                            <td th:text="${user.name != null ? user.name : '—'}"></td>
+                            <td th:text="${user.phone != null ? user.phone : '—'}"></td>
+                            <td>
+                                <span th:if="${user.isadmin == '2'}" class="status" style="background:rgba(0,113,227,.1);color:var(--blue);">🛵 骑手</span>
+                                <span th:if="${user.isadmin == '1'}" class="status" style="background:rgba(0,113,227,.1);color:var(--blue);">🔧 管理员</span>
+                                <span th:if="${user.isadmin == '0' and user.isvalidate == '1'}" class="status" style="background:rgba(52,199,89,.1);color:var(--green);">👤 用户</span>
+                                <span th:if="${user.isadmin == '0' and user.isvalidate != '1'}" class="status" style="background:rgba(255,149,0,.1);color:var(--orange);">⏳ 待审核</span>
+                            </td>
+                            <td>
+                                <span class="status" th:if="${user.status == 1}" style="background:rgba(255,59,48,.1);color:var(--red);">已冻结</span>
+                                <span class="status" th:if="${user.status == 0}" style="background:rgba(52,199,89,.1);color:var(--green);">正常</span>
+                            </td>
+                            <td>
+                                <div class="action-group">
+                                    <a th:if="${user.isvalidate != '1' and user.isadmin != '2'}" th:href="@{/admin/userVerify(id=${user.id})}" class="btn btn-sm btn-success">审核</a>
+                                    <a th:href="@{/admin/userEdit(id=${user.id})}" class="btn btn-sm btn-info">修改</a>
+                                    <a th:if="${user.isadmin != '2' and user.status != 1}" th:href="@{/admin/userFreeze(id=${user.id})}" class="btn btn-sm btn-warning" onclick="return confirm('确定冻结该用户？')">冻结</a>
+                                    <a th:if="${user.isadmin != '2' and user.status == 1}" th:href="@{/admin/userUnfreeze(id=${user.id})}" class="btn btn-sm btn-success">解冻</a>
+                                    <a th:href="@{/admin/userDelete(id=${user.id})}" class="btn btn-sm btn-danger" onclick="return confirm('确定删除该用户？此操作不可恢复！')">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination" th:if="${totalPages != null && totalPages > 1}">
+                    <a th:href="@{/admin/users(unverified=${unverified}, type=${filterType}, page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
+                    <a th:href="@{/admin/users(unverified=${unverified}, type=${filterType}, page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+                    <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/admin/users(unverified=${unverified}, type=${filterType}, page=${i})}" th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}" th:text="${i}"></a>
+                    <a th:href="@{/admin/users(unverified=${unverified}, type=${filterType}, page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
+                    <a th:href="@{/admin/users(unverified=${unverified}, type=${filterType}, page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

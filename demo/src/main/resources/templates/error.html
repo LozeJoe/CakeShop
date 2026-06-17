@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>页面错误 - Cake Shop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container">
+        <div class="card" style="text-align: center; padding: 48px;">
+            <div style="font-size: 64px; margin-bottom: 24px;">😔</div>
+            <h1 style="font-size: 28px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">页面出错了</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 32px;" th:text="${error != null ? error : '抱歉，页面暂时无法访问'}"></p>
+            
+            <div style="display: flex; justify-content: center; gap: 12px;">
+                <a th:href="@{/goods/goodList}" class="btn btn-primary">返回首页</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+</body>
+</html>

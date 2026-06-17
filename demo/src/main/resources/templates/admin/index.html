@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>数据概览 — CakeShop 管理后台</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <style>
+        .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
+        .chart-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:20px;}
+        .chart-card h3{font-size:14px;font-weight:600;color:var(--black);margin-bottom:16px;}
+        .chart-box{width:100%;height:320px;}
+        .alert-row{background:rgba(255,59,48,.04);}
+        .section-title{font-size:13px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;padding-left:4px;}
+        .quick-list{list-style:none;}
+        .quick-list li{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f5f5f7;font-size:13px;transition:background .2s;}
+        .quick-list li:hover{background:#fafafa;}
+        .quick-list li:last-child{border-bottom:none;}
+        .quick-list .meta{color:var(--light);font-size:12px;}
+        .quick-list .val{font-weight:600;color:var(--black);}
+        .badge{padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:600;}
+        .badge-success{background:rgba(52,199,89,.12);color:var(--green);}
+        .badge-warning{background:rgba(255,149,0,.12);color:var(--orange);}
+        .badge-danger{background:rgba(255,59,48,.12);color:var(--red);}
+        .badge-blue{background:rgba(0,113,227,.1);color:var(--blue);}
+        .flex-row{display:flex;align-items:center;gap:8px;}
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header class="admin-header">
+                <h1>📊 数据概览</h1>
+                <span style="color:var(--light);font-size:13px;">实时统计</span>
+            </header>
+
+            <!-- 核心指标 -->
+            <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div><h3>用户总数</h3>
+                    <div class="stat-value" th:text="${userCount}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🎂</div><h3>商品总数</h3>
+                    <div class="stat-value" th:text="${goodsCount}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div><h3>订单总数</h3>
+                    <div class="stat-value" th:text="${orderCount}">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🏷️</div><h3>分类总数</h3>
+                    <div class="stat-value" th:text="${typeCount}">0</div>
+                </div>
+                <div class="stat-card" th:classappend="${lowStockCount > 0 ? 'warn-card' : ''}">
+                    <div class="stat-icon" th:text="${lowStockCount > 0 ? '⚠️' : '✅'}"></div>
+                    <h3 th:text="${lowStockCount > 0 ? '库存预警' : '库存充足'}"></h3>
+                    <div class="stat-value" th:style="${lowStockCount > 0 ? 'color:var(--orange)' : 'color:var(--green)'}" th:text="${lowStockCount}">0</div>
+                </div>
+            </div>
+
+            <!-- ECharts 图表 -->
+            <div class="chart-row">
+                <div class="chart-card">
+                    <h3>📦 订单状态分布</h3>
+                    <div class="chart-box" id="statusChart"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>🔥 分类销量排行</h3>
+                    <div class="chart-box" id="salesChart"></div>
+                </div>
+            </div>
+
+            <!-- 最近订单 + 快捷操作 -->
+            <div class="chart-row">
+                <div class="chart-card">
+                    <div class="section-title">📋 最近订单</div>
+                    <div th:if="${recentOrders == null || recentOrders.isEmpty()}" class="empty-state" style="padding:30px;"><p>暂无订单</p></div>
+                    <ul class="quick-list" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
+                        <li th:each="order,stat : ${recentOrders}">
+                            <div class="flex-row">
+                                <span style="font-weight:700;color:var(--black);min-width:24px;" th:text="${stat.index + 1} + '.'"></span>
+                                <div>
+                                    <a th:href="@{/admin/orderDetail(orderId=${order.id})}" style="font-weight:600;" th:text="${order.name}"></a>
+                                    <div class="meta" th:text="${#strings.substring(order.datetime, 0, 16)}"></div>
+                                </div>
+                            </div>
+                            <div class="flex-row">
+                                <span style="font-weight:700;">¥<span th:text="${#numbers.formatDecimal(order.total,0,2)}">0</span></span>
+                                <span class="badge" 
+                                      th:classappend="${order.status == 1 ? 'badge-warning' : (order.status == 2 ? 'badge-blue' : (order.status == 3 ? 'badge-blue' : (order.status == 4 ? 'badge-blue' : (order.status == 5 ? 'badge-success' : 'badge-danger'))))}"
+                                      th:text="${order.status == 1 ? '待支付' : (order.status == 2 ? '待配送' : (order.status == 3 ? '待取货' : (order.status == 4 ? '配送中' : (order.status == 5 ? '已送达' : '已取消'))))}"></span>
+                            </div>
+                        </li>
+                    </ul>
+                    <div style="text-align:center;margin-top:10px;" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
+                        <a th:href="@{/admin/orders}" class="btn btn-sm btn-secondary">查看全部 →</a>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="section-title">⚡ 快捷操作</div>
+                    <ul class="quick-list">
+                        <li><span>👥 用户管理</span><a th:href="@{/admin/users}" class="btn btn-sm btn-secondary">进入</a></li>
+                        <li><span>🎂 商品管理</span><a th:href="@{/admin/goods}" class="btn btn-sm btn-secondary">进入</a></li>
+                        <li><span>📦 订单管理</span><a th:href="@{/admin/orders}" class="btn btn-sm btn-secondary">进入</a></li>
+                        <li><span>🏷️ 分类管理</span><a th:href="@{/admin/types}" class="btn btn-sm btn-secondary">进入</a></li>
+                        <li th:if="${lowStockCount > 0}" style="background:rgba(255,149,0,.04);">
+                            <span>⚠️ 库存预警 <span class="badge badge-warning" th:text="${lowStockCount}">0</span></span>
+                            <a th:href="@{/admin/goods}" class="btn btn-sm btn-warning">处理</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chart-data-status" style="display:none" th:utext="${statusDistributionJson}">[]</div>
+    <div id="chart-data-names" style="display:none" th:utext="${typeNamesJson}">[]</div>
+    <div id="chart-data-sales" style="display:none" th:utext="${typeSalesJson}">[]</div>
+    <script>
+        // 订单状态分布 - 饼图
+        (function(){
+            var chart = echarts.init(document.getElementById('statusChart'));
+            var data = JSON.parse(document.getElementById('chart-data-status').textContent);
+            chart.setOption({
+                tooltip: { trigger: 'item', formatter: '{b}: {c} 单 ({d}%)' },
+                legend: { bottom: 0, textStyle: { fontSize: 12 } },
+                series: [{
+                    type: 'pie', radius: ['45%', '72%'], center: ['50%', '45%'],
+                    emphasis: { label: { fontSize: 16, fontWeight: 'bold' } },
+                    label: { show: true, formatter: '{b}\n{d}%' },
+                    data: data,
+                    itemStyle: {
+                        color: function(params) {
+                            var colors = ['#ff9500','#0071e3','#34c759','#5856d6','#ff3b30'];
+                            return colors[params.dataIndex % colors.length];
+                        }
+                    }
+                }]
+            });
+            window.addEventListener('resize', function(){ chart.resize(); });
+        })();
+
+        // 分类销量 - 柱状图
+        (function(){
+            var chart = echarts.init(document.getElementById('salesChart'));
+            var names = JSON.parse(document.getElementById('chart-data-names').textContent);
+            var sales = JSON.parse(document.getElementById('chart-data-sales').textContent);
+            chart.setOption({
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '8%', bottom: '8%', top: '8%', containLabel: true },
+                xAxis: { type: 'category', data: names, axisLabel: { rotate: 30, fontSize: 11 } },
+                yAxis: { type: 'value', name: '销量(件)' },
+                series: [{
+                    type: 'bar', data: sales,
+                    itemStyle: {
+                        borderRadius: [6,6,0,0],
+                        color: new echarts.graphic.LinearGradient(0,0,0,1,[
+                            {offset:0,color:'#0071e3'},{offset:1,color:'#5ac8fa'}
+                        ])
+                    }
+                }]
+            });
+            window.addEventListener('resize', function(){ chart.resize(); });
+        })();
+    </script>
+</body>
+</html>

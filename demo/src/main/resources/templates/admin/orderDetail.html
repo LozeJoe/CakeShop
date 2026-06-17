@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>订单详情 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+    <style>
+        #adminOrderMap{width:100%;height:280px;border-radius:12px;margin-top:16px;border:1px solid var(--border);}
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header th:replace="admin/commons::header"></header>
+            <div class="order-card">
+                <div class="order-header">
+                    <span style="font-family:monospace;font-size:15px;font-weight:600;" th:text="'订单号：' + ${order.id}"></span>
+                    <span class="order-status" th:classappend="${order.status == 1 ? 'status-warning' : (order.status == 2 ? 'status-active' : (order.status == 3 ? 'status-active' : (order.status == 4 ? 'status-active' : (order.status == 5 ? 'status-success' : 'status-danger'))))}">
+                        <span th:if="${order.status == 1}">待支付</span>
+                        <span th:if="${order.status == 2}">待配送</span>
+                        <span th:if="${order.status == 3}">待取货</span>
+                        <span th:if="${order.status == 4}">配送中</span>
+                        <span th:if="${order.status == 5}">已送达</span>
+                        <span th:if="${order.status == 6}">已取消</span>
+                    </span>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 40px;font-size:14px;">
+                    <div><span class="info-label">收件人</span><span class="info-value" th:text="${order.name}"></span></div>
+                    <div><span class="info-label">电话</span><span class="info-value" th:text="${order.phone}"></span></div>
+                    <div><span class="info-label">地址</span><span class="info-value" th:text="${order.address}"></span></div>
+                    <div><span class="info-label">下单时间</span><span class="info-value" th:text="${order.datetime}"></span></div>
+                    <div th:if="${order.deliveryTime != null and !order.deliveryTime.isEmpty()}">
+                        <span class="info-label">期望送达</span><span class="info-value" style="color:var(--blue);" th:text="${order.deliveryTime}"></span>
+                    </div>
+                    <div>
+                        <span class="info-label">配送费</span>
+                        <span class="info-value" style="color:var(--blue);">
+                            <span th:if="${order.commission > 0}">&yen;[[${#numbers.formatDecimal(order.commission, 0, 2)}]]</span>
+                            <span th:if="${order.commission == 0}" style="color:var(--gray);">未设置</span>
+                        </span>
+                    </div>
+                    <div th:if="${order.riderId > 0}">
+                        <span class="info-label">骑手ID</span><span class="info-value" th:text="${order.riderId}"></span>
+                    </div>
+                </div>
+                <!-- 订单评价 -->
+                <div th:if="${order.reviewRating > 0}" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
+                    <span class="info-label">用户评价</span>
+                    <span style="color:var(--gold-dark);"><th:block th:each="i : ${#numbers.sequence(1, order.reviewRating)}">⭐</th:block></span>
+                    <p style="margin-top:6px;font-size:13px;color:var(--gray);" th:text="${order.reviewContent}"></p>
+                </div>
+                <!-- 地图 -->
+                <div id="adminOrderMap"></div>
+            </div>
+            <div class="order-card">
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:16px;">商品清单</h3>
+                <table>
+                    <thead><tr><th>商品ID</th><th>数量</th><th>单价</th><th>小计</th></tr></thead>
+                    <tbody>
+                        <tr th:each="item : ${orderItems}">
+                            <td th:text="${item.goodsId}"></td>
+                            <td th:text="${item.amount}"></td>
+                            <td>&yen;[[${#numbers.formatDecimal(item.price, 0, 2)}]]</td>
+                            <td style="font-weight:600;">&yen;[[${#numbers.formatDecimal(item.price * item.amount, 0, 2)}]]</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+                    <span class="info-label">总价</span>
+                    <span class="total-price">&yen;[[${#numbers.formatDecimal(order.total, 0, 2)}]]</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var lat = /*[[${order.latitude}]]*/ 0;
+            var lng = /*[[${order.longitude}]]*/ 0;
+            var addr = /*[[${order.address}]]*/ '';
+            if (!document.getElementById('adminOrderMap')) return;
+            if (lat === 0 && lng === 0) { lat = 39.9042; lng = 116.4074; }
+            var css = document.createElement('link');
+            css.rel = 'stylesheet'; css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(css);
+            var s = document.createElement('script');
+            s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            s.onload = function(){
+                var map = L.map('adminOrderMap').setView([lat, lng], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OSM', maxZoom: 19
+                }).addTo(map);
+                L.marker([lat, lng]).addTo(map).bindPopup(addr || '收货地址').openPopup();
+            };
+            document.body.appendChild(s);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<!-- Apple 风格 — 管理后台公共组件 -->
+
+<nav class="admin-sidebar" th:fragment="sidebar">
+    <h2 style="font-family:'Playfair Display',serif;" th:text="${siteName}">CakeShop</h2>
+    <ul>
+        <li><a href="/admin/index" th:classappend="${sidebarActive == 'index' ? 'active' : ''}">📊 <span th:if="${#locale.language=='zh'}">数据概览</span><span th:if="${#locale.language!='zh'}">Dashboard</span></a></li>
+        <li><a href="/admin/users" th:classappend="${sidebarActive == 'users' ? 'active' : ''}">👥 <span th:if="${#locale.language=='zh'}">用户管理</span><span th:if="${#locale.language!='zh'}">Users</span></a></li>
+        <li><a href="/admin/goods" th:classappend="${sidebarActive == 'goods' ? 'active' : ''}">🎂 <span th:if="${#locale.language=='zh'}">商品管理</span><span th:if="${#locale.language!='zh'}">Products</span></a></li>
+        <li><a href="/admin/orders" th:classappend="${sidebarActive == 'orders' ? 'active' : ''}">📦 <span th:if="${#locale.language=='zh'}">订单管理</span><span th:if="${#locale.language!='zh'}">Orders</span></a></li>
+        <li><a href="/admin/types" th:classappend="${sidebarActive == 'types' ? 'active' : ''}">🏷️ <span th:if="${#locale.language=='zh'}">分类管理</span><span th:if="${#locale.language!='zh'}">Categories</span></a></li>
+        <li><a href="/admin/settings" th:classappend="${sidebarActive == 'settings' ? 'active' : ''}">⚙️ <span th:if="${#locale.language=='zh'}">系统管理</span><span th:if="${#locale.language!='zh'}">Settings</span></a></li>
+        <li><a href="/admin/logs" th:classappend="${sidebarActive == 'logs' ? 'active' : ''}">📋 <span th:if="${#locale.language=='zh'}">操作日志</span><span th:if="${#locale.language!='zh'}">Logs</span></a></li>
+        <li style="margin-top:20px;border-top:1px solid rgba(255,255,255,.08);padding-top:16px;">
+            <a href="/goods/goodList"><span th:if="${#locale.language=='zh'}">← 回商城</span><span th:if="${#locale.language!='zh'}">← Back to Shop</span></a>
+        </li>
+        <li>
+            <a href="?lang=zh" style="display:inline-block;width:48%;text-align:center;padding:8px 0;font-size:12px;" th:classappend="${#locale.language=='zh'?'active':''}">中文</a>
+            <a href="?lang=en" style="display:inline-block;width:48%;text-align:center;padding:8px 0;font-size:12px;" th:classappend="${#locale.language=='en'?'active':''}">EN</a>
+        </li>
+        <li><button class="theme-toggle" id="themeToggle" style="width:100%;text-align:left;padding:11px 20px;"><span th:if="${#locale.language=='zh'}">🌙 夜间模式</span><span th:if="${#locale.language!='zh'}">🌙 Dark Mode</span></button></li>
+    </ul>
+    <script>
+    (function(){
+        var t=document.getElementById('themeToggle');
+        var h=document.documentElement;
+        if(localStorage.getItem('theme')==='dark'){h.setAttribute('data-theme','dark');if(t)t.textContent='☀️ 日间模式';}
+        if(t)t.addEventListener('click',function(){
+            if(h.getAttribute('data-theme')==='dark'){h.removeAttribute('data-theme');t.textContent='🌙 夜间模式';localStorage.setItem('theme','light');}
+            else{h.setAttribute('data-theme','dark');t.textContent='☀️ 日间模式';localStorage.setItem('theme','dark');}
+        });
+    })();
+    </script>
+</nav>
+
+<header class="admin-header" th:fragment="header">
+    <h1 th:text="${pageTitle}"></h1>
+    <div th:if="${headerExtra != null}" th:utext="${headerExtra}"></div>
+</header>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>个人中心 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <link type="text/css" rel="stylesheet" href="/css/style.css">
+    <style>
+        /* 账户信息卡片 */
+        .profile-card{background:linear-gradient(135deg,var(--gold-dark),var(--chocolate));border-radius:var(--radius-lg);padding:28px 20px;margin:16px 0;color:white;box-shadow:var(--shadow-md);text-align:center;}
+        .profile-card .avatar{width:64px;height:64px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 12px;}
+        .profile-card .name{font-size:20px;font-weight:700;}
+        .profile-card .phone{font-size:13px;opacity:.8;margin-top:4px;}
+        .profile-card .level{display:inline-block;background:rgba(255,255,255,.15);border-radius:var(--radius-full);padding:3px 12px;font-size:11px;margin-top:8px;}
+
+        /* 金额双栏 */
+        .balance-row{display:flex;gap:16px;margin:16px 0;}
+        .balance-row .box{flex:1;background:var(--warm-white);border-radius:var(--radius-md);padding:16px;text-align:center;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);}
+        .balance-row .box .num{font-family:'Georgia',serif;font-size:26px;font-weight:700;}
+        .balance-row .box .lbl{font-size:12px;color:var(--caramel);margin-top:4px;}
+        .num-red{color:#e53e3e;}
+        .num-green{color:#38a169;}
+
+        /* 功能菜单 */
+        .menu-list{background:var(--warm-white);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);margin-top:16px;}
+        .menu-item{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--border-light);color:var(--espresso);text-decoration:none;font-size:14px;transition:background .2s;}
+        .menu-item:last-child{border-bottom:none;}
+        .menu-item:hover{background:var(--cream);}
+        .menu-item .left{display:flex;align-items:center;gap:10px;}
+        .menu-item .left .icon{font-size:18px;}
+        .menu-item .arrow{color:var(--caramel);font-size:12px;}
+
+        /* 编辑区域 — 通过 :target 显示 */
+        #edit-profile{display:none;margin-top:20px;padding:20px;background:var(--warm-white);border-radius:var(--radius-md);border:1px solid var(--border-light);box-shadow:var(--shadow-sm);}
+        #edit-profile:target{display:block;}
+        #edit-profile h3{font-size:16px;font-weight:700;color:var(--espresso);margin-bottom:16px;}
+        #edit-profile .form-group{margin-bottom:14px;}
+        #edit-profile .form-group label{display:block;font-size:13px;color:var(--caramel);margin-bottom:4px;}
+        #edit-profile .form-group input{width:100%;padding:10px 14px;border:1px solid var(--border-light);border-radius:var(--radius-md);font-size:14px;outline:none;box-sizing:border-box;}
+        #edit-profile .form-group input:focus{border-color:var(--gold);}
+        #edit-profile .btn-row{display:flex;gap:12px;margin-top:20px;}
+        #edit-profile .btn-row .btn-save{flex:1;padding:12px;border:none;border-radius:var(--radius-md);background:var(--gold);color:white;font-size:15px;font-weight:600;cursor:pointer;}
+        #edit-profile .btn-row .btn-cancel{flex:1;padding:12px;border:1px solid var(--border-light);border-radius:var(--radius-md);background:var(--warm-white);color:var(--caramel);font-size:15px;text-align:center;text-decoration:none;}
+        /* 退出按钮 */
+        .logout-btn{display:block;width:100%;text-align:center;padding:16px;margin-top:20px;background:var(--warm-white);border:1px solid var(--border-light);border-radius:var(--radius-md);color:#e53e3e;font-size:15px;font-weight:600;text-decoration:none;cursor:pointer;transition:all .2s;}
+        .logout-btn:hover{background:#fff5f5;border-color:#fed7d7;}
+
+        .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--warm-white);display:flex;border-top:1px solid var(--border-light);z-index:100;}
+        .bottom-nav a{flex:1;text-align:center;padding:12px 0;color:var(--caramel);text-decoration:none;font-size:13px;}
+        .bottom-nav a.active{color:var(--gold-dark);font-weight:600;}
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width:500px;padding-bottom:80px;">
+
+        <!-- 账户信息卡片 -->
+        <div class="profile-card">
+            <div class="avatar">🛵</div>
+            <div class="name" th:text="${rider.name}">张三</div>
+            <div class="phone" th:text="'📞 ' + ${rider.phone}">📞 13900139000</div>
+            <div class="level" th:text="'⭐ Lv.' + ${rider.level}">⭐ Lv.5</div>
+        </div>
+
+        <!-- 余额与收入 -->
+        <div class="balance-row">
+            <div class="box">
+                <div class="num num-red">¥<span th:text="${#numbers.formatDecimal(rider.balance,0,2)}">0.00</span></div>
+                <div class="lbl">账户余额</div>
+            </div>
+            <div class="box">
+                <div class="num num-green">¥<span th:text="${#numbers.formatDecimal(totalIncome,0,0)}">0</span></div>
+                <div class="lbl">累计总收入</div>
+            </div>
+        </div>
+
+        <!-- 功能跳转菜单 -->
+        <div class="menu-list">
+            <a class="menu-item" href="#edit-profile">
+                <div class="left"><span class="icon">📝</span> 编辑个人信息</div>
+                <span class="arrow">›</span>
+            </a>
+            <a class="menu-item" th:href="@{/rider/income}">
+                <div class="left"><span class="icon">💰</span> 收入明细</div>
+                <span class="arrow">›</span>
+            </a>
+            <a class="menu-item" th:href="@{/rider/messages}">
+                <div class="left"><span class="icon">💬</span> 消息通知 <span th:if="${unreadCount > 0}" style="background:var(--rose);color:white;font-size:10px;min-width:18px;height:18px;line-height:18px;border-radius:9px;display:inline-block;text-align:center;margin-left:6px;padding:0 5px;" th:text="${unreadCount}"></span></div>
+                <span class="arrow">›</span>
+            </a>
+        </div>
+
+        <!-- 编辑个人信息区域 -->
+        <div id="edit-profile">
+            <h3>✏️ 编辑个人信息</h3>
+            <form th:action="@{/rider/editProfile}" method="post">
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" name="name" th:value="${rider.name}" placeholder="请输入姓名" required>
+                </div>
+                <div class="form-group">
+                    <label>手机号</label>
+                    <input type="text" name="phone" th:value="${rider.phone}" placeholder="请输入手机号" required>
+                </div>
+                <div class="btn-row">
+                    <button type="submit" class="btn-save">保存</button>
+                    <a href="#" class="btn-cancel">取消</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- 退出登录 -->
+        <a th:href="@{/rider/logout}" class="logout-btn" onclick="return confirm('确定退出登录吗？')">退出登录</a>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav">
+        <a th:href="@{/rider/index}">🏠 首页</a>
+        <a th:href="@{/rider/income}">💰 收入</a>
+        <a th:href="@{/rider/messages}">💬 消息</a>
+        <a th:href="@{/rider/profile}" class="active">👤 我的</a>
+    </div>
+</body>
+</html>

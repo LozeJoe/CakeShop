@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>操作日志 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header th:replace="admin/commons::header"></header>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>时间</th><th>管理员</th><th>操作</th><th>目标</th><th>IP</th></tr></thead>
+                    <tbody>
+                        <tr th:each="log : ${logList}">
+                            <td th:text="${#strings.substring(log.createTime, 0, 19)}"></td>
+                            <td th:text="${log.adminName}"></td>
+                            <td th:text="${log.action}"></td>
+                            <td th:text="${log.target}"></td>
+                            <td th:text="${log.ip}"></td>
+                        </tr>
+                        <tr th:if="${logList == null || logList.isEmpty()}">
+                            <td colspan="5" style="text-align:center;padding:40px;color:var(--light);">暂无日志</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination" th:if="${totalPages != null && totalPages > 1}">
+                    <a th:href="@{/admin/logs(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
+                    <a th:href="@{/admin/logs(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+                    <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/admin/logs(page=${i})}" th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}" th:text="${i}"></a>
+                    <a th:href="@{/admin/logs(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
+                    <a th:href="@{/admin/logs(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

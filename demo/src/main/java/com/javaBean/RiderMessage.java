@@ -1,0 +1,14 @@
+package com.javaBean;
+
+import lombok.Data;
+
+@Data
+public class RiderMessage {
+    int id;
+    int riderId;
+    String type;       // order / system / income
+    String title;
+    String content;
+    int isRead;        // 0=未读 1=已读
+    String createTime;
+}

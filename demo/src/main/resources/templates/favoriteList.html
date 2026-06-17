@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>我的收藏 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container" style="max-width:900px;">
+        <div class="hero" style="padding:32px 0 24px;text-align:left;">
+            <h1 style="font-size:36px;">❤️ 我的收藏 <small style="font-size:16px;color:var(--caramel);" th:text="'共 ' + ${favoriteCount} + ' 件'"></small></h1>
+        </div>
+
+        <div th:if="${favorites == null || favorites.isEmpty()}" class="empty-state">
+            <div class="empty-icon">💝</div>
+            <p class="empty-text">还没有收藏任何商品</p>
+            <a th:href="@{/goods/goodList}" class="btn btn-primary">去逛逛</a>
+        </div>
+
+        <div th:each="fav : ${favorites}" th:if="${goodsMap.containsKey(fav.goodsId)}" class="card" style="display:flex;align-items:center;padding:20px 24px;margin-bottom:14px;gap:20px;">
+            <a th:href="@{/goods/detail(id=${fav.goodsId})}">
+                <img th:src="@{${goodsMap[fav.goodsId].cover}}" style="width:100px;height:100px;border-radius:12px;object-fit:cover;" onerror="this.src='/picture/1-1.jpg'">
+            </a>
+            <div style="flex:1;">
+                <div class="product-title" th:text="${goodsMap[fav.goodsId].name}" style="margin-bottom:4px;"></div>
+                <div class="product-intro" th:text="${goodsMap[fav.goodsId].intro}" style="margin-bottom:8px;"></div>
+                <span class="product-price" style="font-size:20px;"><span class="price-symbol">¥</span><span th:text="${goodsMap[fav.goodsId].price}"></span></span>
+            </div>
+            <div style="display:flex;gap:10px;">
+                <a th:href="@{/goods/unfavor(goodsId=${fav.goodsId})}" class="btn btn-sm btn-secondary">取消收藏</a>
+                <form th:action="@{/cart/addToCart}" method="post" style="display:inline;">
+                    <input type="hidden" name="goodId" th:value="${fav.goodsId}">
+                    <input type="hidden" name="from" value="favorite">
+                    <button type="submit" class="btn btn-sm btn-primary">加入购物车</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="user/commons::footbar"></div>
+</body>
+</html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'注册 — ' + ${siteName}">注册</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div th:replace="user/commons::topbar"></div>
+    <div th:replace="user/commons::floathome"></div>
+
+    <div class="container">
+        <div class="form-container" style="max-width:460px;" id="registerForm">
+            <h2>创建新账户</h2>
+            <p style="color:var(--caramel);font-size:14px;margin-bottom:28px;" th:text="'加入 ' + ${siteName} + '，探索美味甜点'">加入 CakeShop</p>
+
+            <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+
+            <form action="/user/register" method="post">
+                <div class="form-group">
+                    <input type="text" name="userName" placeholder="用户名" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" name="userPassword" placeholder="密码（至少6位）" required minlength="6">
+                </div>
+                <div class="form-group">
+                    <input type="password" name="confirmPassword" placeholder="确认密码" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="姓名">
+                </div>
+                <div class="form-group">
+                    <input type="tel" name="phone" placeholder="电话">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="address" placeholder="收货地址">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">注册</button>
+            </form>
+
+            <p class="form-link">已有账号？<a th:href="@{/user/login}">立即登录</a></p>
+        </div>
+    </div>
+</body>
+</html>

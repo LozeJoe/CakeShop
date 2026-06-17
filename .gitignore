@@ -15,7 +15,11 @@ demo/build/
 Thumbs.db
 
 # Reasonix tool cache
-.reasonix/truncated-results/
+.reasonix/
+
+# Personal / tool files
+SKILL.md
+mycar.md
 
 # Logs
 *.log

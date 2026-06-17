@@ -17,7 +17,12 @@ Thumbs.db
 # Reasonix tool cache
 .reasonix/
 
-# Personal / tool files
+# Root docs (in demo/ docs instead)
+骑手端功能需求文档.md
+骑手端完善.md
+语言切换.md
+ai客服.md
+CakeShop-Bug-Report.md
 SKILL.md
 mycar.md
 

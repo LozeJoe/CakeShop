@@ -34,6 +34,10 @@ a{color:var(--accent-2);text-decoration:none}
   opacity:0;visibility:hidden;transition:opacity .4s var(--ease),visibility .4s var(--ease);
   overflow-y:auto;scrollbar-width:thin;
 }
+/* 内容多的幻灯片（截图页等）改为顶部对齐，防止图片被遮挡 */
+.slide.scroll{justify-content:flex-start;padding-top:40px;padding-bottom:40px}
+.slide.scroll .grid-2{gap:16px}
+.slide.scroll h4{font-size:14px!important;margin-bottom:4px}
 .slide.is-active{opacity:1;visibility:visible;z-index:2}
 .slide h1{font-size:clamp(36px,4vw,60px);font-weight:700;letter-spacing:-.03em;margin:0 0 16px;line-height:1.2}
 .slide h2{font-size:clamp(26px,2.8vw,40px);font-weight:600;letter-spacing:-.02em;margin:0 0 12px}
@@ -47,7 +51,7 @@ a{color:var(--accent-2);text-decoration:none}
 .card-icon{font-size:36px;margin-bottom:12px}
 .card h4{font-size:18px;font-weight:600;margin:0 0 8px}
 .card p{font-size:14px;color:var(--text-2);margin:0}
-.screenshot{width:100%;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin:12px 0}
+.screenshot{width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);margin:8px 0}
 .metric{text-align:center;padding:24px}
 .metric-num{font-size:42px;font-weight:700;color:var(--accent-2);display:block}
 .metric-label{font-size:14px;color:var(--text-3);margin-top:4px}
@@ -379,41 +383,41 @@ docker-compose up -d<br>
   <p style="max-width:600px;">核心功能界面截图</p>
 </section>
 
-<section class="slide" id="slide-15">
+<section class="slide scroll" id="slide-15">
   <h2>🖥️ 核心界面展示</h2>
-  <div class="grid-2" style="margin-top:8px;">
+  <div class="grid-2" style="margin-top:4px;">
     <div>
-      <h4 style="font-size:16px;">🏠 商品首页</h4>
+      <h4>🏠 商品首页</h4>
       <img src="../screenshots/01-商品首页.png" class="screenshot" alt="商品首页">
-      <h4 style="font-size:16px;margin-top:12px;">📄 商品详情</h4>
+      <h4>📄 商品详情</h4>
       <img src="../screenshots/02-商品详情.png" class="screenshot" alt="商品详情">
-      <h4 style="font-size:16px;margin-top:12px;">🛒 购物车</h4>
+      <h4>🛒 购物车</h4>
       <img src="../screenshots/03-购物车.png" class="screenshot" alt="购物车">
     </div>
     <div>
-      <h4 style="font-size:16px;">🔐 登录页面</h4>
+      <h4>🔐 登录页面</h4>
       <img src="../screenshots/04-登录页面.png" class="screenshot" alt="登录">
-      <h4 style="font-size:16px;margin-top:12px;">📦 我的订单</h4>
+      <h4>📦 我的订单</h4>
       <img src="../screenshots/05-我的订单.png" class="screenshot" alt="我的订单">
-      <h4 style="font-size:16px;margin-top:12px;">🔍 搜索功能</h4>
+      <h4>🔍 搜索功能</h4>
       <img src="../screenshots/06-商品搜索.png" class="screenshot" alt="搜索">
     </div>
   </div>
 </section>
 
-<section class="slide" id="slide-16">
+<section class="slide scroll" id="slide-16">
   <h2>📊 管理后台截图</h2>
-  <div class="grid-2" style="margin-top:8px;">
+  <div class="grid-2" style="margin-top:4px;">
     <div>
-      <h4 style="font-size:16px;">📈 数据仪表盘</h4>
+      <h4>📈 数据仪表盘</h4>
       <img src="../screenshots/07-管理仪表盘.png" class="screenshot" alt="仪表盘">
-      <h4 style="font-size:16px;margin-top:12px;">📦 订单管理</h4>
+      <h4>📦 订单管理</h4>
       <img src="../screenshots/08-管理订单.png" class="screenshot" alt="订单管理">
     </div>
     <div>
-      <h4 style="font-size:16px;">🎂 商品管理</h4>
+      <h4>🎂 商品管理</h4>
       <img src="../screenshots/09-管理商品.png" class="screenshot" alt="商品管理">
-      <h4 style="font-size:16px;margin-top:12px;">👥 用户管理</h4>
+      <h4>👥 用户管理</h4>
       <img src="../screenshots/10-管理用户.png" class="screenshot" alt="用户管理">
     </div>
   </div>

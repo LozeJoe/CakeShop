@@ -17,7 +17,8 @@ public interface UserService {
     void updateUser(User user);
     void deleteUser(int id);
     void register(String username, String password, String name, String phone, String address, String email, String isadmin);
-    String md5(String input);
+    String encodePassword(String rawPassword);
+    boolean matchesPassword(String rawPassword, String encodedPassword);
     PageResult<User> getUnverifiedUsers(int pageNum, int pageSize);
     int getUnverifiedCount();
     PageResult<User> getRidersByPage(int pageNum, int pageSize);

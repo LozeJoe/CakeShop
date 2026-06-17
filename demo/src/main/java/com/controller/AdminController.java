@@ -270,11 +270,10 @@ public class AdminController {
                         return modelAndView;
                     }
                 }
-                // 密码处理：如果提交的密码与数据库中不同，说明用户修改了密码，需要重新 MD5
+                // 密码处理：使用 BCrypt 加密
                 if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-                    if (!user.getPassword().equals(existingUser.getPassword())) {
-                        user.setPassword(userService.md5(user.getPassword()));
-                    }
+                    // 只要管理员填了密码，就重新 BCrypt 加密（即使与旧 hash 不同，BCrypt 随机盐也能保证安全）
+                    user.setPassword(userService.encodePassword(user.getPassword()));
                 } else {
                     // 未填密码则保留原密码
                     user.setPassword(existingUser.getPassword());

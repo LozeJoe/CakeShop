@@ -43,7 +43,7 @@ class RiderFlowE2ETest {
     void riderDoLogin() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-        HttpEntity<String> request = new HttpEntity<>("username=rider1&password=123", headers);
+        HttpEntity<String> request = new HttpEntity<>("username=rider1&password=Rider1234!", headers);
         ResponseEntity<String> response = restTemplate.postForEntity(baseUrl + "/rider/doLogin", request, String.class);
         assertTrue(response.getStatusCode().is3xxRedirection());
         assertTrue(response.getHeaders().getLocation().toString().contains("/rider/index"));

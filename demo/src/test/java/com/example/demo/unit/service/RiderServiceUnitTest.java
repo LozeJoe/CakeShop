@@ -8,6 +8,7 @@ import com.mapper.OrderMapper;
 import com.mapper.UserMapper;
 import com.service.OrderService;
 import com.service.RiderService;
+import com.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.*;
 class RiderServiceUnitTest {
 
     @Mock private UserMapper userMapper;
+    @Mock private UserService userService;
     @Mock private OrderMapper orderMapper;
     @Mock private OrderService orderService;
     @InjectMocks private RiderService riderService;
@@ -36,10 +38,16 @@ class RiderServiceUnitTest {
         testRider = TestBeans.createTestRider();
     }
 
-    @Test @DisplayName("骑手登录成功")
+    @Test @DisplayName("骑手登录成功 - BCrypt")
     void loginSuccess() {
-        when(userMapper.login("rider1", "123")).thenReturn(testRider);
-        User result = riderService.login("rider1", "123");
+        String rawPw = "Rider1234!";
+        String encoded = "$2a$10$dummyBcryptHashForTesting";
+        testRider.setPassword(encoded);
+
+        when(userMapper.getUserByName("rider1")).thenReturn(testRider);
+        when(userService.matchesPassword(rawPw, encoded)).thenReturn(true);
+
+        User result = riderService.login("rider1", rawPw);
         assertNotNull(result);
         assertEquals("rider1", result.getUsername());
         assertEquals("2", result.getIsadmin());
@@ -47,14 +55,18 @@ class RiderServiceUnitTest {
 
     @Test @DisplayName("骑手登录失败 - 非骑手用户")
     void loginFailNotRider() {
-        when(userMapper.login("testuser", "123")).thenReturn(TestBeans.createTestUser());
-        assertNull(riderService.login("testuser", "123"));
+        User normalUser = TestBeans.createTestUser();
+        normalUser.setPassword("$2a$10$dummyBcryptHash");
+
+        when(userMapper.getUserByName("testuser")).thenReturn(normalUser);
+        // isadmin != '2', login should return null without checking password
+        assertNull(riderService.login("testuser", "Test1234!"));
     }
 
     @Test @DisplayName("骑手登录失败 - 不存在")
     void loginFailNotFound() {
-        when(userMapper.login("nobody", "123")).thenReturn(null);
-        assertNull(riderService.login("nobody", "123"));
+        when(userMapper.getUserByName("nobody")).thenReturn(null);
+        assertNull(riderService.login("nobody", "Test1234!"));
     }
 
     @Test @DisplayName("骑手接单")

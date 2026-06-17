@@ -76,17 +76,27 @@ class UserControllerTest {
     @Test @DisplayName("POST /user/register - 成功")
     void registerSuccess() throws Exception {
         when(userService.getUserByName("newuser")).thenReturn(null);
+        when(userService.getUserByEmail("newuser@test.com")).thenReturn(null);
         mockMvc.perform(post("/user/register")
-                        .param("userName", "newuser").param("userPassword", "123456")
-                        .param("confirmPassword", "123456"))
+                        .param("userName", "newuser")
+                        .param("userPassword", "NewUser1!")
+                        .param("confirmPassword", "NewUser1!")
+                        .param("name", "新用户")
+                        .param("phone", "13800138001")
+                        .param("email", "newuser@test.com")
+                        .param("address", "上海市/浦东新区"))
                 .andExpect(status().is3xxRedirection());
     }
 
     @Test @DisplayName("POST /user/register - 密码不一致")
     void registerPasswordMismatch() throws Exception {
         mockMvc.perform(post("/user/register")
-                        .param("userName", "newuser").param("userPassword", "123456")
-                        .param("confirmPassword", "654321"))
+                        .param("userName", "newuser")
+                        .param("userPassword", "NewUser1!")
+                        .param("confirmPassword", "OtherPw2@")
+                        .param("phone", "13800138001")
+                        .param("email", "newuser@test.com")
+                        .param("address", "上海市/浦东新区"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("register"))
                 .andExpect(model().attributeExists("error"));

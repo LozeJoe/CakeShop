@@ -3,6 +3,7 @@ package com.javaBean;
 import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
 @Data
@@ -24,7 +25,7 @@ public class User {
     @Size(max = 50, message = "姓名不超过 50 个字符")
     String name;
     
-    @Size(max = 20, message = "手机号不超过 20 个字符")
+    @Pattern(regexp = "^1\\d{10}$", message = "手机号必须为11位数字且以1开头")
     String phone;
     
     @Size(max = 255, message = "地址不超过 255 个字符")

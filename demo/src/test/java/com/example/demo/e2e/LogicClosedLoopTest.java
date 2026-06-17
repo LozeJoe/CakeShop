@@ -50,22 +50,23 @@ class LogicClosedLoopTest {
 
     @BeforeEach
     void setUp() {
-        // 从数据库获取测试用户
-        testUser = userService.login("testuser", "123");
+        // 使用种子用户：vili（普通用户）和 rider1（骑手），密码均为 BCrypt
+        String userPw = "Vili1234!";
+        String riderPw = "Rider1234!";
+
+        testUser = userService.login("vili", userPw);
         if (testUser == null) {
-            // 注册测试用户
-            userService.register("testuser", "123", "测试用户", "13800138000", "测试地址", "test@test.com", "0");
-            testUser = userService.login("testuser", "123");
+            // 可能是旧数据，尝试用旧密码
+            testUser = userService.login("vili", "123");
         }
 
-        testRider = riderService.login("rider1", "123");
+        testRider = riderService.login("rider1", riderPw);
         if (testRider == null) {
-            // 注册测试骑手
-            userService.register("rider1", "123", "测试骑手", "13900139000", "骑手地址", "rider@test.com", "2");
+            // 可能是旧数据，尝试用旧密码
             testRider = riderService.login("rider1", "123");
         }
 
-        // 获取或创建测试商品
+        // 获取测试商品
         List<Goods> allGoods = goodsService.getAllGoods();
         if (!allGoods.isEmpty()) {
             testGoods = allGoods.get(0);

@@ -31,46 +31,59 @@ class UserServiceUnitTest {
         testUser = TestBeans.createTestUser();
     }
 
-    @Test @DisplayName("登录成功")
+    @Test @DisplayName("BCrypt 加密-验证-匹配")
+    void bcryptEncodeAndMatch() {
+        String rawPw = "Test1234!";
+        String encoded = userService.encodePassword(rawPw);
+        assertNotNull(encoded);
+        assertTrue(encoded.startsWith("$2a$"), "BCrypt hash 应以 $2a$ 开头");
+        assertTrue(userService.matchesPassword(rawPw, encoded), "明文应与 BCrypt hash 匹配");
+        assertFalse(userService.matchesPassword("WrongPw1!", encoded), "错误密码不应匹配");
+    }
+
+    @Test @DisplayName("登录成功 - BCrypt")
     void loginSuccess() {
-        when(userMapper.login("testuser", "202cb962ac59075b964b07152d234b70")).thenReturn(testUser);
-        User result = userService.login("testuser", "123");
+        String rawPw = "Test1234!";
+        String encoded = userService.encodePassword(rawPw);
+        testUser.setPassword(encoded);
+
+        when(userMapper.getUserByName("testuser")).thenReturn(testUser);
+
+        User result = userService.login("testuser", rawPw);
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
     }
 
     @Test @DisplayName("登录失败 - 错误密码")
     void loginFailWrongPassword() {
-        when(userMapper.login(anyString(), anyString())).thenReturn(null);
-        assertNull(userService.login("testuser", "wrong"));
+        String encoded = userService.encodePassword("RealPw1!");
+        testUser.setPassword(encoded);
+
+        when(userMapper.getUserByName("testuser")).thenReturn(testUser);
+
+        assertNull(userService.login("testuser", "WrongPw1!"));
     }
 
-    @Test @DisplayName("登录失败 - 空用户名")
-    void loginFailEmptyUsername() {
-        // Service 不会校验空用户名，直接传给 Mapper
-        assertNull(userService.login("  ", "123"));
+    @Test @DisplayName("登录失败 - 用户不存在")
+    void loginFailUserNotFound() {
+        when(userMapper.getUserByName("nonexistent")).thenReturn(null);
+        assertNull(userService.login("nonexistent", "Test1234!"));
     }
 
-    @Test @DisplayName("登录失败 - 空密码")
-    void loginFailEmptyPassword() {
-        assertNull(userService.login("testuser", "  "));
-    }
-
-    @Test @DisplayName("MD5 加密验证")
-    void md5Hash() {
-        assertEquals("202cb962ac59075b964b07152d234b70", userService.md5("123"));
-    }
-
-    @Test @DisplayName("MD5 空字符串")
-    void md5Empty() {
-        String hash = userService.md5("");
-        assertNotNull(hash);
-        assertEquals(32, hash.length());
-    }
-
-    @Test @DisplayName("注册用户")
+    @Test @DisplayName("注册用户 - BCrypt加密")
     void registerUser() {
+        String rawPw = "Test1234!";
+        userService.register("newuser", rawPw, "测试", "13800138000", "北京市", "test@test.com", "0");
+        verify(userMapper).register(eq("newuser"), startsWith("$2a$"), eq("测试"), eq("13800138000"), eq("北京市"), eq("test@test.com"), eq("0"));
+    }
+
+    @Test @DisplayName("addUser - BCrypt加密")
+    void addUser() {
+        String rawPw = "Test1234!";
+        testUser.setPassword(rawPw);
         userService.addUser(testUser);
+        // 验证密码已被 BCrypt 加密
+        assertTrue(testUser.getPassword().startsWith("$2a$"), "密码应被 BCrypt 加密");
         verify(userMapper).addUser(testUser);
     }
 

@@ -5,6 +5,20 @@
     <title th:text="'注册 — ' + ${siteName}">注册</title>
     <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
     <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .pw-strength-bar{height:4px;border-radius:2px;margin-top:4px;transition:all .3s;background:#eee;}
+        .pw-strength-bar.weak{width:33%;background:#e74c3c;}
+        .pw-strength-bar.medium{width:66%;background:#f39c12;}
+        .pw-strength-bar.strong{width:100%;background:#27ae60;}
+        .pw-hint{font-size:12px;color:#999;margin-top:2px;}
+        .pw-hint.valid{color:#27ae60;}
+        .pw-hint.invalid{color:#e74c3c;}
+        .field-error{color:#e74c3c;font-size:12px;margin-top:2px;display:none;}
+        .field-error.show{display:block;}
+        .form-row{display:flex;gap:8px;}
+        .form-row .form-group{flex:1;}
+        select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;background:#fff;box-sizing:border-box;}
+    </style>
 </head>
 <body>
     <div th:replace="user/commons::topbar"></div>
@@ -17,30 +31,311 @@
 
             <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
 
-            <form action="/user/register" method="post">
+            <form action="/user/register" method="post" id="regForm" onsubmit="return validateForm()">
                 <div class="form-group">
-                    <input type="text" name="userName" placeholder="用户名" required>
+                    <input type="text" name="userName" id="userName" placeholder="用户名（2-50个字符）" required>
+                    <div class="field-error" id="userNameError"></div>
                 </div>
                 <div class="form-group">
-                    <input type="password" name="userPassword" placeholder="密码（至少6位）" required minlength="6">
+                    <input type="text" name="name" id="name" placeholder="收件人姓名">
                 </div>
                 <div class="form-group">
-                    <input type="password" name="confirmPassword" placeholder="确认密码" required>
+                    <input type="email" name="email" id="email" placeholder="电子邮箱（如example@email.com）" required>
+                    <div class="field-error" id="emailError">请输入有效的邮箱地址</div>
                 </div>
                 <div class="form-group">
-                    <input type="text" name="name" placeholder="姓名">
+                    <input type="tel" name="phone" id="phone" placeholder="手机号（11位，1开头）" required maxlength="11">
+                    <div class="field-error" id="phoneError">手机号必须为11位数字且以1开头</div>
                 </div>
                 <div class="form-group">
-                    <input type="tel" name="phone" placeholder="电话">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <select id="province" onchange="updateCities()">
+                                <option value="">— 请选择省份 —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select id="city" onchange="updateDistricts()">
+                                <option value="">— 请选择城市 —</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select id="district">
+                                <option value="">— 请选择区/县 —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" name="address" id="address">
+                    <div class="field-error" id="addressError">请选择完整的地址</div>
                 </div>
                 <div class="form-group">
-                    <input type="text" name="address" placeholder="收货地址">
+                    <input type="password" name="userPassword" id="userPassword" placeholder="密码（至少8位，需含大小写+数字+符号）" required minlength="8" onkeyup="checkPwStrength()">
+                    <div class="pw-strength-bar" id="pwBar"></div>
+                    <div class="pw-hint" id="pwLower">✓ 包含小写字母</div>
+                    <div class="pw-hint" id="pwUpper">✓ 包含大写字母</div>
+                    <div class="pw-hint" id="pwDigit">✓ 包含数字</div>
+                    <div class="pw-hint" id="pwSymbol">✓ 包含特殊字符</div>
                 </div>
-                <button type="submit" class="btn btn-primary btn-lg">注册</button>
+                <div class="form-group">
+                    <input type="password" name="confirmPassword" id="confirmPassword" placeholder="确认密码" required onkeyup="checkPwMatch()">
+                    <div class="field-error" id="pwMatchError">两次输入的密码不一致</div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">注册</button>
             </form>
 
             <p class="form-link">已有账号？<a th:href="@{/user/login}">立即登录</a></p>
         </div>
     </div>
+
+    <script>
+        // ============== 省市区数据 ==============
+        var regions = {
+            "北京市": {"东城区":[], "西城区":[], "朝阳区":[], "海淀区":[], "丰台区":[], "石景山区":[], "通州区":[], "大兴区":[], "顺义区":[], "昌平区":[], "房山区":[]},
+            "上海市": {"黄浦区":[], "徐汇区":[], "长宁区":[], "静安区":[], "普陀区":[], "虹口区":[], "杨浦区":[], "浦东新区":[], "闵行区":[], "宝山区":[]},
+            "天津市": {"和平区":[], "河东区":[], "河西区":[], "南开区":[], "河北区":[], "红桥区":[], "滨海新区":[], "东丽区":[], "西青区":[], "北辰区":[]},
+            "重庆市": {"渝中区":[], "江北区":[], "沙坪坝区":[], "九龙坡区":[], "南岸区":[], "渝北区":[], "巴南区":[], "北碚区":[], "万州区":[], "涪陵区":[]},
+            "广东省": {
+                "广州市":["荔湾区","越秀区","海珠区","天河区","白云区","黄埔区","番禺区","花都区","南沙区","增城区","从化区"],
+                "深圳市":["罗湖区","福田区","南山区","宝安区","龙岗区","盐田区","龙华区","坪山区","光明区"],
+                "珠海市":["香洲区","斗门区","金湾区"],
+                "佛山市":["禅城区","南海区","顺德区","三水区","高明区"],
+                "东莞市":[], "中山市":[], "惠州市":["惠城区","惠阳区","博罗县","惠东县","龙门县"],
+                "汕头市":["金平区","龙湖区","濠江区","潮阳区","潮南区","澄海区"],
+                "湛江市":["赤坎区","霞山区","坡头区","麻章区","遂溪县","徐闻县","廉江市","雷州市","吴川市"]
+            },
+            "浙江省": {
+                "杭州市":["上城区","下城区","江干区","拱墅区","西湖区","滨江区","萧山区","余杭区","富阳区","临安区","建德市","桐庐县","淳安县"],
+                "宁波市":["海曙区","江北区","北仑区","镇海区","鄞州区","奉化区","余姚市","慈溪市","宁海县","象山县"],
+                "温州市":["鹿城区","龙湾区","瓯海区","洞头区","瑞安市","乐清市","永嘉县","平阳县","苍南县","文成县","泰顺县"],
+                "嘉兴市":["南湖区","秀洲区","海宁市","平湖市","桐乡市","嘉善县","海盐县"],
+                "绍兴市":["越城区","柯桥区","上虞区","诸暨市","嵊州市","新昌县"]
+            },
+            "江苏省": {
+                "南京市":["玄武区","秦淮区","建邺区","鼓楼区","浦口区","栖霞区","雨花台区","江宁区","六合区","溧水区","高淳区"],
+                "苏州市":["姑苏区","虎丘区","吴中区","相城区","吴江区","常熟市","张家港市","昆山市","太仓市"],
+                "无锡市":["梁溪区","锡山区","惠山区","滨湖区","新吴区","江阴市","宜兴市"],
+                "常州市":["天宁区","钟楼区","新北区","武进区","金坛区","溧阳市"],
+                "南通市":["崇川区","港闸区","通州区","启东市","如皋市","海门市","如东县","海安市"]
+            },
+            "四川省": {
+                "成都市":["锦江区","青羊区","金牛区","武侯区","成华区","龙泉驿区","青白江区","新都区","温江区","双流区","郫都区","都江堰市","彭州市","邛崃市","崇州市","金堂县","大邑县","蒲江县","新津县"],
+                "绵阳市":["涪城区","游仙区","安州区","江油市","三台县","盐亭县","梓潼县","北川县","平武县"],
+                "德阳市":["旌阳区","罗江区","广汉市","什邡市","绵竹市","中江县"]
+            },
+            "湖北省": {
+                "武汉市":["江岸区","江汉区","硚口区","汉阳区","武昌区","青山区","洪山区","东西湖区","汉南区","蔡甸区","江夏区","黄陂区","新洲区"],
+                "宜昌市":["西陵区","伍家岗区","点军区","猇亭区","夷陵区","宜都市","当阳市","枝江市","远安县","兴山县","秭归县","长阳县","五峰县"],
+                "襄阳市":["襄城区","樊城区","襄州区","老河口市","枣阳市","宜城市","南漳县","谷城县","保康县"]
+            },
+            "湖南省": {
+                "长沙市":["芙蓉区","天心区","岳麓区","开福区","雨花区","望城区","浏阳市","宁乡市","长沙县"],
+                "株洲市":["荷塘区","芦淞区","石峰区","天元区","渌口区","醴陵市","攸县","茶陵县","炎陵县"],
+                "湘潭市":["雨湖区","岳塘区","湘乡市","韶山市","湘潭县"]
+            },
+            "福建省": {
+                "福州市":["鼓楼区","台江区","仓山区","马尾区","晋安区","长乐区","福清市","闽侯县","连江县","罗源县","闽清县","永泰县","平潭县"],
+                "厦门市":["思明区","海沧区","湖里区","集美区","同安区","翔安区"],
+                "泉州市":["鲤城区","丰泽区","洛江区","泉港区","石狮市","晋江市","南安市","惠安县","安溪县","永春县","德化县"]
+            },
+            "山东省": {
+                "济南市":["历下区","市中区","槐荫区","天桥区","历城区","长清区","章丘区","济阳区","莱芜区","钢城区","平阴县","商河县"],
+                "青岛市":["市南区","市北区","黄岛区","崂山区","李沧区","城阳区","即墨区","胶州市","平度市","莱西市"],
+                "烟台市":["芝罘区","福山区","牟平区","莱山区","蓬莱区","龙口市","莱阳市","莱州市","招远市","栖霞市","海阳市"]
+            },
+            "河南省": {
+                "郑州市":["中原区","二七区","管城区","金水区","上街区","惠济区","中牟县","巩义市","荥阳市","新密市","新郑市","登封市"],
+                "洛阳市":["老城区","西工区","瀍河区","涧西区","吉利区","洛龙区","偃师市","孟津县","新安县","栾川县","嵩县","汝阳县","宜阳县","洛宁县","伊川县"],
+                "开封市":["龙亭区","顺河区","鼓楼区","禹王台区","祥符区","杞县","通许县","尉氏县","兰考县"]
+            },
+            "河北省": {
+                "石家庄市":["长安区","桥西区","新华区","井陉矿区","裕华区","藁城区","鹿泉区","栾城区","辛集市","晋州市","新乐市","井陉县","正定县","行唐县","灵寿县","高邑县","深泽县","赞皇县","无极县","平山县","元氏县","赵县"],
+                "唐山市":["路南区","路北区","古冶区","开平区","丰南区","丰润区","曹妃甸区","遵化市","迁安市","滦州市","滦南县","乐亭县","迁西县","玉田县"],
+                "保定市":["竞秀区","莲池区","满城区","清苑区","徐水区","涿州市","定州市","安国市","高碑店市","涞水县","阜平县","定兴县","唐县","高阳县","容城县","涞源县","望都县","易县","曲阳县","蠡县","顺平县","博野县","雄县"]
+            },
+            "辽宁省": {
+                "沈阳市":["和平区","沈河区","大东区","皇姑区","铁西区","苏家屯区","浑南区","沈北新区","于洪区","辽中区","新民市","康平县","法库县"],
+                "大连市":["中山区","西岗区","沙河口区","甘井子区","旅顺口区","金州区","普兰店区","瓦房店市","庄河市","长海县"],
+                "鞍山市":["铁东区","铁西区","立山区","千山区","海城市","台安县","岫岩县"]
+            },
+            "陕西省": {
+                "西安市":["新城区","碑林区","莲湖区","灞桥区","未央区","雁塔区","阎良区","临潼区","长安区","高陵区","鄠邑区","蓝田县","周至县"],
+                "咸阳市":["秦都区","杨陵区","渭城区","兴平市","三原县","泾阳县","乾县","礼泉县","永寿县","彬州市","长武县","旬邑县","淳化县","武功县"]
+            },
+            "云南省": {
+                "昆明市":["五华区","盘龙区","官渡区","西山区","东川区","呈贡区","晋宁区","安宁市","富民县","宜良县","石林县","嵩明县","禄劝县","寻甸县"],
+                "大理市":["大理市","漾濞县","祥云县","宾川县","弥渡县","南涧县","巍山县","永平县","云龙县","洱源县","剑川县","鹤庆县"]
+            },
+            "广西壮族自治区": {
+                "南宁市":["兴宁区","青秀区","江南区","西乡塘区","良庆区","邕宁区","武鸣区","隆安县","马山县","上林县","宾阳县","横县"],
+                "桂林市":["秀峰区","叠彩区","象山区","七星区","雁山区","临桂区","阳朔县","灵川县","全州县","兴安县","永福县","灌阳县","龙胜县","资源县","平乐县","荔浦市","恭城县"]
+            }
+        };
+
+        // 初始化省份下拉框
+        var provinceSelect = document.getElementById('province');
+        var citySelect = document.getElementById('city');
+        var districtSelect = document.getElementById('district');
+        var addressHidden = document.getElementById('address');
+
+        (function initProvinces() {
+            var provinces = Object.keys(regions);
+            provinces.sort();
+            for (var i = 0; i < provinces.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = provinces[i];
+                opt.text = provinces[i];
+                provinceSelect.appendChild(opt);
+            }
+        })();
+
+        function updateCities() {
+            var p = provinceSelect.value;
+            citySelect.innerHTML = '<option value="">— 请选择城市 —</option>';
+            districtSelect.innerHTML = '<option value="">— 请选择区/县 —</option>';
+            if (!p) return;
+            var cities = Object.keys(regions[p]);
+            cities.sort();
+            for (var i = 0; i < cities.length; i++) {
+                var opt = document.createElement('option');
+                opt.value = cities[i];
+                opt.text = cities[i];
+                citySelect.appendChild(opt);
+            }
+            updateAddress();
+        }
+
+        function updateDistricts() {
+            districtSelect.innerHTML = '<option value="">— 请选择区/县 —</option>';
+            var p = provinceSelect.value;
+            var c = citySelect.value;
+            if (!p || !c) return;
+            var districts = regions[p][c];
+            if (districts && districts.length > 0) {
+                for (var i = 0; i < districts.length; i++) {
+                    var opt = document.createElement('option');
+                    opt.value = districts[i];
+                    opt.text = districts[i];
+                    districtSelect.appendChild(opt);
+                }
+            }
+            updateAddress();
+        }
+
+        function updateAddress() {
+            var p = provinceSelect.value;
+            var c = citySelect.value;
+            var d = districtSelect.value;
+            var parts = [];
+            if (p) parts.push(p);
+            if (c) parts.push(c);
+            if (d) parts.push(d);
+            addressHidden.value = parts.join('/');
+        }
+
+        // ============== 密码强度实时检查 ==============
+        function checkPwStrength() {
+            var pw = document.getElementById('userPassword').value;
+            var lower = /[a-z]/.test(pw);
+            var upper = /[A-Z]/.test(pw);
+            var digit = /\d/.test(pw);
+            var symbol = /[^a-zA-Z\d]/.test(pw);
+
+            setHint('pwLower', lower);
+            setHint('pwUpper', upper);
+            setHint('pwDigit', digit);
+            setHint('pwSymbol', symbol);
+
+            var bar = document.getElementById('pwBar');
+            var score = (lower?1:0) + (upper?1:0) + (digit?1:0) + (symbol?1:0) + (pw.length>=8?1:0);
+            bar.className = 'pw-strength-bar';
+            if (score <= 2) bar.classList.add('weak');
+            else if (score <= 3) bar.classList.add('medium');
+            else bar.classList.add('strong');
+
+            checkPwMatch();
+        }
+
+        function setHint(id, valid) {
+            var el = document.getElementById(id);
+            el.className = 'pw-hint ' + (valid ? 'valid' : 'invalid');
+        }
+
+        function checkPwMatch() {
+            var pw = document.getElementById('userPassword').value;
+            var confirm = document.getElementById('confirmPassword').value;
+            var err = document.getElementById('pwMatchError');
+            if (confirm.length > 0 && pw !== confirm) {
+                err.classList.add('show');
+            } else {
+                err.classList.remove('show');
+            }
+        }
+
+        // ============== 手机号实时检查 ==============
+        document.getElementById('phone').addEventListener('input', function() {
+            var err = document.getElementById('phoneError');
+            var v = this.value;
+            if (v.length > 0 && !/^1\d{10}$/.test(v)) {
+                err.classList.add('show');
+            } else {
+                err.classList.remove('show');
+            }
+        });
+
+        // ============== 邮箱实时检查 ==============
+        document.getElementById('email').addEventListener('input', function() {
+            var err = document.getElementById('emailError');
+            var v = this.value;
+            if (v.length > 0 && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(v)) {
+                err.classList.add('show');
+            } else {
+                err.classList.remove('show');
+            }
+        });
+
+        // ============== 表单提交前验证 ==============
+        function validateForm() {
+            // 检查手机号
+            var phone = document.getElementById('phone').value;
+            if (!/^1\d{10}$/.test(phone)) {
+                document.getElementById('phoneError').classList.add('show');
+                return false;
+            }
+
+            // 检查密码强度
+            var pw = document.getElementById('userPassword').value;
+            var strong = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$/.test(pw);
+            if (!strong) {
+                alert('密码必须包含大写字母、小写字母、数字和特殊字符，且不少于8位');
+                return false;
+            }
+
+            // 检查密码一致性
+            if (pw !== document.getElementById('confirmPassword').value) {
+                document.getElementById('pwMatchError').classList.add('show');
+                return false;
+            }
+
+            // 检查邮箱
+            var email = document.getElementById('email').value;
+            if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+                document.getElementById('emailError').classList.add('show');
+                return false;
+            }
+
+            // 检查地址
+            if (!addressHidden.value) {
+                document.getElementById('addressError').classList.add('show');
+                return false;
+            }
+
+            return true;
+        }
+
+        // 地址选择器变更时隐藏错误
+        provinceSelect.addEventListener('change', function() {
+            document.getElementById('addressError').classList.remove('show');
+        });
+    </script>
 </body>
 </html>

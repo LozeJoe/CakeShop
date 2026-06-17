@@ -30,13 +30,15 @@ class UserMapperIntegrationTest {
     }
 
     @Test
-    @DisplayName("根据用户名和密码登录")
+    @DisplayName("通过用户名查询用户（密码已使用 BCrypt 加密）")
     void login() {
-        // admin/21232f297a57a5a743894a0e4a801fc3 = admin/admin 的MD5
-        User user = userMapper.login("admin", "21232f297a57a5a743894a0e4a801fc3");
+        // 直接 SQL 对比密码的 login() 方法不再适用（BCrypt 随机盐每次不同）
+        // 改用 getUserByName 然后通过 BCryptPasswordEncoder 验证
+        User user = userMapper.getUserByName("admin");
         assertNotNull(user);
         assertEquals("admin", user.getUsername());
         assertEquals("1", user.getIsadmin());
+        assertTrue(user.getPassword().startsWith("$2a$"), "密码应为 BCrypt 格式");
     }
 
     @Test

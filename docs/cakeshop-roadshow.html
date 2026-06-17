@@ -159,7 +159,7 @@ td{color:var(--text-2)}
     </div>
     <div class="card">
       <div class="card-icon">🧪</div>
-      <h4>236 个自动化测试</h4>
+      <h4>235 个自动化测试</h4>
       <p>单元测试 + 集成测试 + Controller 测试 + E2E 测试，全部通过</p>
     </div>
     <div class="card">
@@ -318,7 +318,7 @@ CakeShop/<br>
       <span class="metric-label">API 端点</span>
     </div>
     <div class="metric">
-      <span class="metric-num">236</span>
+      <span class="metric-num">235</span>
       <span class="metric-label">自动化测试</span>
     </div>
   </div>
@@ -347,12 +347,14 @@ ADMIN_TRANSITIONS: 可强制向前流转
         <tr><td>集成测试</td><td>6</td><td>35</td></tr>
         <tr><td>Controller</td><td>9</td><td>62</td></tr>
         <tr><td>E2E</td><td>4</td><td>40</td></tr>
-        <tr><td><strong>总计</strong></td><td><strong>29</strong></td><td><strong>236 ✅</strong></td></tr>
+        <tr><td><strong>总计</strong></td><td><strong>29</strong></td><td><strong>235 ✅</strong></td></tr>
       </table>
     </div>
     <div class="card">
       <h4>🔒 安全防护</h4>
       <ul style="font-size:14px;">
+        <li>BCrypt 密码加密（替代不安全的 MD5）</li>
+        <li>旧 MD5 密码自动升级为 BCrypt</li>
         <li>XSS 输入净化（HTML/脚本标签过滤）</li>
         <li>SQL 注入防护（MyBatis #{} 参数绑定）</li>
         <li>登录拦截器 + 管理员权限守卫</li>
@@ -427,6 +429,12 @@ docker-compose up -d<br>
   <h2>🔑 关键问题与解决方案</h2>
   <div class="grid-2" style="margin-top:8px;">
     <div class="card">
+      <h4>❌ 问题：MD5 密码加密不安全</h4>
+      <p>用户密码使用无盐 MD5 存储，极易被彩虹表破解</p>
+      <h4 style="margin-top:12px;">✅ 解决方案</h4>
+      <p>升级为 BCrypt（自适应哈希+随机盐），旧用户首次登录自动迁移；注册/改密码严格校验强度（大小写+数字+符号≥8位）</p>
+    </div>
+    <div class="card">
       <h4>❌ 问题：订单状态无校验</h4>
       <p>管理员可以随意跳转状态，已送达可改回待支付，已取消可重新激活</p>
       <h4 style="margin-top:12px;">✅ 解决方案</h4>
@@ -450,6 +458,12 @@ docker-compose up -d<br>
       <h4 style="margin-top:12px;">✅ 解决方案</h4>
       <p>合并逻辑：检查购物车是否已存在，存在则累加数量而非新建</p>
     </div>
+    <div class="card">
+      <h4>❌ 问题：注册表单校验缺失</h4>
+      <p>手机号无格式校验、注册无邮箱字段、地址为自由文本、密码仅要求6位</p>
+      <h4 style="margin-top:12px;">✅ 解决方案</h4>
+      <p>手机号11位正则校验、邮箱字段+格式验证、密码强度实时指示器、省市区三级联动下拉框；修改密码需验证旧密码</p>
+    </div>
   </div>
 </section>
 
@@ -466,7 +480,8 @@ docker-compose up -d<br>
       <h4>✅ v1.0 已完成</h4>
       <ul style="font-size:13px;">
         <li>用户注册/登录/商品/购物车/订单</li>
-        <li>订单状态机 + 236 个测试</li>
+        <li>订单状态机 + 235 个测试</li>
+        <li>BCrypt 密码加密、注册校验升级</li>
         <li>管理后台 + ECharts 仪表盘</li>
         <li>骑手端 + 收入统计</li>
         <li>AI 客服 (DeepSeek)</li>

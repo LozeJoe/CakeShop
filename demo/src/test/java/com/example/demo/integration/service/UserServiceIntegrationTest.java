@@ -23,7 +23,7 @@ class UserServiceIntegrationTest {
     @Test
     @DisplayName("管理员登录成功")
     void adminLoginSuccess() {
-        User user = userService.login("admin", "admin");
+        User user = userService.login("admin", "admin123");
         assertNotNull(user);
         assertEquals("admin", user.getUsername());
         assertEquals("1", user.getIsadmin());
@@ -32,7 +32,7 @@ class UserServiceIntegrationTest {
     @Test
     @DisplayName("普通用户登录成功")
     void userLoginSuccess() {
-        User user = userService.login("vili", "123");
+        User user = userService.login("vili", "Vili1234!");
         assertNotNull(user);
         assertEquals("vili", user.getUsername());
         assertEquals("0", user.getIsadmin());

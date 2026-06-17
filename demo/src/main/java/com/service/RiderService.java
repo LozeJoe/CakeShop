@@ -7,9 +7,11 @@ import com.javaBean.User;
 import com.mapper.OrderMapper;
 import com.mapper.RiderMessageMapper;
 import com.mapper.UserMapper;
+import com.service.UserService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 
@@ -28,13 +30,48 @@ public class RiderService {
     @Resource
     private RiderMessageMapper riderMessageMapper;
 
+    private UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
     public User login(String username, String password) {
-        // Rider login: isadmin='2'
-        User user = userMapper.login(username, password);
-        if (user != null && "2".equals(user.getIsadmin())) {
+        // Rider login: isadmin='2'，使用 BCrypt 验证
+        User user = userMapper.getUserByName(username);
+        if (user == null || !"2".equals(user.getIsadmin())) {
+            return null;
+        }
+        // BCrypt 验证
+        if (userService.matchesPassword(password, user.getPassword())) {
+            return user;
+        }
+        // 兼容旧 MD5 密码迁移
+        String md5Hash = legacyMd5(password);
+        if (md5Hash.equals(user.getPassword())) {
+            user.setPassword(userService.encodePassword(password));
+            userMapper.updateUser(user);
             return user;
         }
         return null;
+    }
+
+    /** 兼容旧版 MD5 */
+    private String legacyMd5(String input) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("MD5");
+            byte[] messageDigest = md.digest(input.getBytes());
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : messageDigest) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public User getById(int id) {

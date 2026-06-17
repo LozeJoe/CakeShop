@@ -82,6 +82,13 @@ public class UserController {
             User user = userService.login(userName.trim(), userPassword);
 
             if (user != null) {
+                // 检查账户是否被冻结
+                if (user.getStatus() == 1) {
+                    modelAndView.addObject("error", "账户已被冻结，请联系管理员");
+                    modelAndView.setViewName("login");
+                    return modelAndView;
+                }
+
                 // 登录成功，将用户信息存储到Session中
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
@@ -137,6 +144,10 @@ public class UserController {
             String userName = request.getParameter("userName");
             String userPassword = request.getParameter("userPassword");
             String confirmPassword = request.getParameter("confirmPassword");
+            String name = request.getParameter("name");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            String email = request.getParameter("email");
 
             // Validate username
             if (userName == null || userName.trim().isEmpty()) {
@@ -145,15 +156,25 @@ public class UserController {
                 return modelAndView;
             }
             userName = userName.trim();
+            if (userName.length() < 2 || userName.length() > 50) {
+                modelAndView.addObject("error", "用户名长度需在 2-50 之间");
+                modelAndView.setViewName("register");
+                return modelAndView;
+            }
 
-            // Validate password
+            // Validate password (长度至少8位, 含大小写字母+数字+特殊字符)
             if (userPassword == null || userPassword.isEmpty()) {
                 modelAndView.addObject("error", "密码不能为空");
                 modelAndView.setViewName("register");
                 return modelAndView;
             }
-            if (userPassword.length() < 6) {
-                modelAndView.addObject("error", "密码长度不能少于6位");
+            if (userPassword.length() < 8) {
+                modelAndView.addObject("error", "密码长度不能少于8位");
+                modelAndView.setViewName("register");
+                return modelAndView;
+            }
+            if (!userPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$")) {
+                modelAndView.addObject("error", "密码必须包含大写字母、小写字母、数字和特殊字符");
                 modelAndView.setViewName("register");
                 return modelAndView;
             }
@@ -165,6 +186,28 @@ public class UserController {
                 return modelAndView;
             }
 
+            // Validate phone (11位, 1开头)
+            if (phone == null || !phone.matches("^1\\d{10}$")) {
+                modelAndView.addObject("error", "手机号必须为11位数字且以1开头");
+                modelAndView.setViewName("register");
+                return modelAndView;
+            }
+
+            // Validate email
+            if (email == null || !email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+                modelAndView.addObject("error", "请输入有效的邮箱地址");
+                modelAndView.setViewName("register");
+                return modelAndView;
+            }
+
+            // Validate address
+            if (address == null || address.trim().isEmpty()) {
+                modelAndView.addObject("error", "请选择地址");
+                modelAndView.setViewName("register");
+                return modelAndView;
+            }
+            address = address.trim();
+
             // 检查用户名是否已存在
             User existingUser = userService.getUserByName(userName);
             if (existingUser != null) {
@@ -173,13 +216,16 @@ public class UserController {
                 return modelAndView;
             }
 
-            // 创建用户对象
-            User user = new User();
-            user.setUsername(userName);
-            user.setPassword(userPassword);
+            // 检查邮箱是否已存在
+            User emailUser = userService.getUserByEmail(email.trim());
+            if (emailUser != null) {
+                modelAndView.addObject("error", "该邮箱已被注册");
+                modelAndView.setViewName("register");
+                return modelAndView;
+            }
 
-            // 调用服务层方法添加用户
-            userService.addUser(user);
+            // 注册用户（使用BCrypt加密密码）
+            userService.register(userName, userPassword, name, phone.trim(), address, email.trim(), "0");
 
             // 重定向到登录页面，并显示成功消息
             modelAndView.setViewName("redirect:/user/login?success=注册成功，请登录");
@@ -231,6 +277,7 @@ public class UserController {
             String phone = request.getParameter("phone");
             String email = request.getParameter("email");
             String address = request.getParameter("address");
+            String oldPassword = request.getParameter("oldPassword");
             String newPassword = request.getParameter("newPassword");
 
             freshUser.setName(name != null ? name : freshUser.getName());
@@ -249,9 +296,35 @@ public class UserController {
                 freshUser.setEmail(email);
             }
 
-            // 密码处理
+            // 密码处理：修改密码需要验证旧密码
             if (newPassword != null && !newPassword.trim().isEmpty()) {
-                freshUser.setPassword(userService.md5(newPassword.trim()));
+                if (oldPassword == null || oldPassword.isEmpty()) {
+                    modelAndView.addObject("error", "请输入当前密码才能修改密码");
+                    modelAndView.addObject("user", freshUser);
+                    modelAndView.setViewName("user/profile");
+                    return modelAndView;
+                }
+                // 验证旧密码
+                if (!userService.matchesPassword(oldPassword, freshUser.getPassword())) {
+                    modelAndView.addObject("error", "当前密码错误");
+                    modelAndView.addObject("user", freshUser);
+                    modelAndView.setViewName("user/profile");
+                    return modelAndView;
+                }
+                // 新密码强度校验
+                if (newPassword.length() < 8) {
+                    modelAndView.addObject("error", "新密码长度不能少于8位");
+                    modelAndView.addObject("user", freshUser);
+                    modelAndView.setViewName("user/profile");
+                    return modelAndView;
+                }
+                if (!newPassword.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z\\d]).{8,}$")) {
+                    modelAndView.addObject("error", "新密码必须包含大写字母、小写字母、数字和特殊字符");
+                    modelAndView.addObject("user", freshUser);
+                    modelAndView.setViewName("user/profile");
+                    return modelAndView;
+                }
+                freshUser.setPassword(userService.encodePassword(newPassword.trim()));
             }
 
             userService.updateUser(freshUser);

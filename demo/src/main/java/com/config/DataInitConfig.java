@@ -7,6 +7,7 @@ import com.mapper.GoodsMapper;
 import com.mapper.TypeMapper;
 import com.mapper.UserMapper;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -106,13 +107,80 @@ public class DataInitConfig {
     }
 
     private void initUsers() {
-        List<User> users = userMapper.getAllUser();
-        if (users == null || users.isEmpty()) {
-            userMapper.register("admin", "21232f297a57a5a743894a0e4a801fc3", "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1");
-            userMapper.register("vili", "202cb962ac59075b964b07152d234b70", "vili", "1344444444", "上海市浦东新区", "vili@cakeshop.com", "0");
-            // Seed rider account (isadmin='2')
-            userMapper.register("rider1", "202cb962ac59075b964b07152d234b70", "张三", "13900139000", "配送站", "rider1@cakeshop.com", "2");
-            System.out.println("Users initialized (including rider)");
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        boolean seeded = false;
+
+        try (Connection conn = dataSource.getConnection();
+             java.sql.Statement stmt = conn.createStatement()) {
+
+            // 1) 检查是否有用户数据
+            java.sql.ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM user");
+            rs.next();
+            int userCount = rs.getInt(1);
+            rs.close();
+
+            if (userCount == 0) {
+                // 首次初始化 — 全部用 BCrypt
+                userMapper.register("admin", encoder.encode("admin123"), "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1");
+                userMapper.register("vili", encoder.encode("Vili1234!"), "vili", "1344444444", "上海市浦东新区", "vili@cakeshop.com", "0");
+                userMapper.register("rider1", encoder.encode("Rider1234!"), "张三", "13900139000", "配送站", "rider1@cakeshop.com", "2");
+                System.out.println("Users initialized with BCrypt passwords");
+                seeded = true;
+            }
+        } catch (Exception e) {
+            System.out.println("User init check failed: " + e.getMessage());
+        }
+
+        // 2) 如果已有用户（旧数据），升级密码 + 确保种子用户完整
+        if (!seeded) {
+            try (Connection conn = dataSource.getConnection()) {
+                // 2a) 升级旧 MD5 密码为 BCrypt
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                         "UPDATE user SET password = ? WHERE LENGTH(password) = 32 AND password REGEXP '^[0-9a-f]{32}$' AND username = ?")) {
+                    String[][] seeds = {{"admin","admin123"},{"vili","Vili1234!"},{"rider1","Rider1234!"}};
+                    for (String[] s : seeds) {
+                        ps.setString(1, encoder.encode(s[1]));
+                        ps.setString(2, s[0]);
+                        if (ps.executeUpdate() > 0) System.out.println("Upgraded password for: " + s[0]);
+                    }
+                }
+                // 2b) 重置非 BCrypt 密码的种子用户
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                         "UPDATE user SET password = ?, name = ?, phone = ?, address = ?, email = ?, isadmin = ? WHERE username = ? AND (password NOT LIKE '$2a$%' OR password IS NULL)")) {
+                    String[][] seeds = {
+                        {"admin123", "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1", "admin"},
+                        {"Vili1234!", "vili", "1344444444", "上海市浦东新区", "vili@cakeshop.com", "0", "vili"},
+                        {"Rider1234!", "张三", "13900139000", "配送站", "rider1@cakeshop.com", "2", "rider1"}
+                    };
+                    for (String[] row : seeds) {
+                        ps.setString(1, encoder.encode(row[0]));
+                        for (int i = 1; i <= 6; i++) ps.setString(i + 1, row[i]);
+                        if (ps.executeUpdate() > 0) System.out.println("Fixed non-BCrypt password for: " + row[6]);
+                    }
+                }
+                // 2c) INSERT IGNORE 确保种子用户存在（用 BCrypt 密码）
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                         "INSERT IGNORE INTO user (username, password, name, phone, address, email, isadmin) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                    String[][] inserts = {
+                        {"admin",    encoder.encode("admin123"),    "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1"},
+                        {"vili",     encoder.encode("Vili1234!"),  "vili",   "1344444444",  "上海市浦东新区", "vili@cakeshop.com",  "0"},
+                        {"rider1",   encoder.encode("Rider1234!"), "张三",  "13900139000", "配送站",        "rider1@cakeshop.com", "2"}
+                    };
+                    for (String[] row : inserts) {
+                        for (int i = 0; i < row.length; i++) ps.setString(i + 1, row[i]);
+                        if (ps.executeUpdate() > 0) System.out.println("Inserted missing seed user: " + row[0]);
+                    }
+                }
+                // 2c) 升级其他 MD5 用户（如测试中创建的 testuser）
+                try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                         "UPDATE user SET password = ? WHERE LENGTH(password) = 32 AND password REGEXP '^[0-9a-f]{32}$' AND username NOT IN ('admin','vili','rider1')")) {
+                    ps.setString(1, encoder.encode("Test1234!"));
+                    int other = ps.executeUpdate();
+                    if (other > 0) System.out.println("Upgraded " + other + " additional MD5 passwords");
+                }
+            } catch (Exception e) {
+                System.out.println("User upgrade failed: " + e.getMessage());
+            }
         }
         seedMessages();
     }

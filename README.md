@@ -77,10 +77,4 @@ CakeShop/
 
 ---
 
-## 📜 许可证
-
-MIT License
-
----
-
 <p align="center">🍰 用匠心做每一款蛋糕，用代码写好每一行程序</p>

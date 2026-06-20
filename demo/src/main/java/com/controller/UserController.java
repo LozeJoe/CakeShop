@@ -67,36 +67,28 @@ public class UserController {
         ModelAndView modelAndView = new ModelAndView();
 
         try {
-            // 获取表单参数
             String userName = request.getParameter("userName");
             String userPassword = request.getParameter("userPassword");
 
-            // Check for empty credentials
             if (userName == null || userName.trim().isEmpty() || userPassword == null || userPassword.trim().isEmpty()) {
                 modelAndView.addObject("error", "用户名和密码不能为空");
                 modelAndView.setViewName("login");
                 return modelAndView;
             }
 
-            // 调用服务层方法验证用户
             User user = userService.login(userName.trim(), userPassword);
 
             if (user != null) {
-                // 检查账户是否被冻结
                 if (user.getStatus() == 1) {
                     modelAndView.addObject("error", "账户已被冻结，请联系管理员");
                     modelAndView.setViewName("login");
                     return modelAndView;
                 }
 
-                // 登录成功，将用户信息存储到Session中
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
-                
-                // 重定向到商品列表页，让浏览器 URL 变为 /goods/goodList
                 modelAndView.setViewName("redirect:/goods/goodList");
             } else {
-                // 登录失败，返回登录页面并显示错误信息
                 modelAndView.addObject("error", "用户名或密码错误");
                 modelAndView.setViewName("login");
             }

@@ -64,6 +64,12 @@ public interface GoodsMapper {
     
     @Select("select count(*) from goods where stock <= #{threshold}")
     public int getLowStockCount(@Param("threshold") int threshold);
+
+    @Select("select coalesce(sum(stock), 0) from goods")
+    public int getTotalStock();
+
+    @Select("select * from goods where stock <= #{threshold} order by stock asc")
+    public List<Goods> getLowStockGoods(@Param("threshold") int threshold);
     
     @Insert("insert into goods (name, cover, image1, image2, price, intro, stock, type_id) values (#{name}, #{cover}, #{image1}, #{image2}, #{price}, #{intro}, #{stock}, #{typeId})")
     public void addGoods(Goods goods);

@@ -23,4 +23,6 @@ public interface GoodsService {
     void updateGoods(Goods goods);
     void deleteGoods(int id);
     int getLowStockCount(int threshold);
+    int getTotalStock();
+    List<Goods> getLowStockGoods(int threshold);
 }

@@ -23,6 +23,19 @@ public interface OrderService {
     PageResult<Order> searchOrdersByUserId(int userId, String keyword, int pageNum, int pageSize);
     PageResult<Order> getFilteredOrdersPage(int status, String keyword, int pageNum, int pageSize);
     java.util.List<java.util.Map<String, Object>> getOrderStatusDistribution();
+
+    // 管理后台统计
+    double getTotalRevenue();
+    double getTodayRevenue();
+    int getTodayOrderCount();
+    int getCompletedOrderCount();
+    int getPendingOrderCount();
+    double getAvgOrderValue();
+    java.util.List<java.util.Map<String, Object>> getMonthlySales(String startDate);
+    java.util.List<java.util.Map<String, Object>> getWeeklyOrders(String startDate);
+    java.util.List<java.util.Map<String, Object>> getRevenueLast30Days(String startDate);
+    java.util.List<java.util.Map<String, Object>> getCategorySales();
+    java.util.List<java.util.Map<String, Object>> getTopGoods();
     Order createOrderFromCart(User user, List<Cart> cartList, String name, String phone, String address, int paytype);
     Order createOrderFromCart(User user, List<Cart> cartList, String name, String phone, String address, int paytype, String deliveryTime, double latitude, double longitude);
     void setCommission(String orderId, double commission);

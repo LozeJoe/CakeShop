@@ -163,4 +163,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public void setUserAdmin(int id, String isadmin) { userMapper.setUserAdmin(id, isadmin); }
 
+    @Override
+    public int getRiderCount() { return userMapper.getRiderCount(); }
+
 }

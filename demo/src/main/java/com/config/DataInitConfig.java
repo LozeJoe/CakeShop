@@ -85,22 +85,23 @@ public class DataInitConfig {
         }
     }
 
-    /** Create rider_message table if not exists. */
+    /** Create rider_message table if not exists (MySQL + H2 compatible). */
     private void migrateMessageTable() {
         String sql = "CREATE TABLE IF NOT EXISTS `rider_message` ("
             + "`id` int(11) NOT NULL AUTO_INCREMENT,"
-            + "`rider_id` int(11) NOT NULL COMMENT '骑手用户ID',"
-            + "`type` varchar(20) NOT NULL COMMENT '消息类型: order/system/income',"
-            + "`title` varchar(200) DEFAULT NULL COMMENT '消息标题',"
-            + "`content` text COMMENT '消息内容',"
-            + "`is_read` tinyint(1) DEFAULT 0 COMMENT '是否已读 0=未读 1=已读',"
-            + "`create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',"
-            + "PRIMARY KEY (`id`),"
-            + "KEY `idx_rider_id` (`rider_id`),"
-            + "KEY `idx_type` (`type`)"
-            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='骑手消息通知表'";
+            + "`rider_id` int(11) NOT NULL,"
+            + "`type` varchar(20) NOT NULL,"
+            + "`title` varchar(200) DEFAULT NULL,"
+            + "`content` text DEFAULT NULL,"
+            + "`is_read` tinyint(1) DEFAULT 0,"
+            + "`create_time` datetime DEFAULT CURRENT_TIMESTAMP,"
+            + "PRIMARY KEY (`id`)"
+            + ")";
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
+            // Add indexes separately (ignored if already exist)
+            try { stmt.execute("CREATE INDEX IF NOT EXISTS idx_rider_id ON rider_message (rider_id)"); } catch (Exception ignored) {}
+            try { stmt.execute("CREATE INDEX IF NOT EXISTS idx_type ON rider_message (type)"); } catch (Exception ignored) {}
         } catch (Exception e) {
             System.out.println("Message table migration skipped: " + e.getMessage());
         }
@@ -133,51 +134,70 @@ public class DataInitConfig {
 
         // 2) 如果已有用户（旧数据），升级密码 + 确保种子用户完整
         if (!seeded) {
+            // 定义种子用户数据
+            String[][] seedUsers = {
+                {"admin",  "admin123",   "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1"},
+                {"vili",   "Vili1234!",  "vili",   "1344444444",  "上海市浦东新区", "vili@cakeshop.com",  "0"},
+                {"rider1", "Rider1234!", "张三",   "13900139000", "配送站",        "rider1@cakeshop.com", "2"}
+            };
+
             try (Connection conn = dataSource.getConnection()) {
                 // 2a) 升级旧 MD5 密码为 BCrypt
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(
                          "UPDATE user SET password = ? WHERE LENGTH(password) = 32 AND password REGEXP '^[0-9a-f]{32}$' AND username = ?")) {
-                    String[][] seeds = {{"admin","admin123"},{"vili","Vili1234!"},{"rider1","Rider1234!"}};
-                    for (String[] s : seeds) {
+                    for (String[] s : seedUsers) {
                         ps.setString(1, encoder.encode(s[1]));
                         ps.setString(2, s[0]);
                         if (ps.executeUpdate() > 0) System.out.println("Upgraded password for: " + s[0]);
                     }
-                }
+                } catch (Exception ignored) {}
+
                 // 2b) 重置非 BCrypt 密码的种子用户
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(
                          "UPDATE user SET password = ?, name = ?, phone = ?, address = ?, email = ?, isadmin = ? WHERE username = ? AND (password NOT LIKE '$2a$%' OR password IS NULL)")) {
-                    String[][] seeds = {
-                        {"admin123", "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1", "admin"},
-                        {"Vili1234!", "vili", "1344444444", "上海市浦东新区", "vili@cakeshop.com", "0", "vili"},
-                        {"Rider1234!", "张三", "13900139000", "配送站", "rider1@cakeshop.com", "2", "rider1"}
-                    };
-                    for (String[] row : seeds) {
-                        ps.setString(1, encoder.encode(row[0]));
-                        for (int i = 1; i <= 6; i++) ps.setString(i + 1, row[i]);
-                        if (ps.executeUpdate() > 0) System.out.println("Fixed non-BCrypt password for: " + row[6]);
+                    for (String[] row : seedUsers) {
+                        ps.setString(1, encoder.encode(row[1]));
+                        ps.setString(2, row[2]);
+                        ps.setString(3, row[3]);
+                        ps.setString(4, row[4]);
+                        ps.setString(5, row[5]);
+                        ps.setString(6, row[6]);
+                        ps.setString(7, row[0]);
+                        if (ps.executeUpdate() > 0) System.out.println("Fixed non-BCrypt password for: " + row[0]);
                     }
-                }
-                // 2c) INSERT IGNORE 确保种子用户存在（用 BCrypt 密码）
-                try (java.sql.PreparedStatement ps = conn.prepareStatement(
-                         "INSERT IGNORE INTO user (username, password, name, phone, address, email, isadmin) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
-                    String[][] inserts = {
-                        {"admin",    encoder.encode("admin123"),    "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1"},
-                        {"vili",     encoder.encode("Vili1234!"),  "vili",   "1344444444",  "上海市浦东新区", "vili@cakeshop.com",  "0"},
-                        {"rider1",   encoder.encode("Rider1234!"), "张三",  "13900139000", "配送站",        "rider1@cakeshop.com", "2"}
-                    };
-                    for (String[] row : inserts) {
-                        for (int i = 0; i < row.length; i++) ps.setString(i + 1, row[i]);
-                        if (ps.executeUpdate() > 0) System.out.println("Inserted missing seed user: " + row[0]);
+                } catch (Exception ignored) {}
+
+                // 2c) 确保种子用户存在（先查后插，兼容 H2 和 MySQL）
+                try (java.sql.Statement checkStmt = conn.createStatement()) {
+                    for (String[] row : seedUsers) {
+                        java.sql.ResultSet rs = checkStmt.executeQuery(
+                            "SELECT COUNT(*) FROM user WHERE username = '" + row[0].replace("'", "''") + "'");
+                        rs.next();
+                        if (rs.getInt(1) == 0) {
+                            try (java.sql.PreparedStatement ps = conn.prepareStatement(
+                                     "INSERT INTO user (username, password, name, phone, address, email, isadmin) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                                ps.setString(1, row[0]);
+                                ps.setString(2, encoder.encode(row[1]));
+                                ps.setString(3, row[2]);
+                                ps.setString(4, row[3]);
+                                ps.setString(5, row[4]);
+                                ps.setString(6, row[5]);
+                                ps.setString(7, row[6]);
+                                ps.executeUpdate();
+                                System.out.println("Inserted missing seed user: " + row[0]);
+                            }
+                        }
+                        rs.close();
                     }
-                }
-                // 2c) 升级其他 MD5 用户（如测试中创建的 testuser）
+                } catch (Exception ignored) {}
+
+                // 2d) 升级其他 MD5 用户
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(
                          "UPDATE user SET password = ? WHERE LENGTH(password) = 32 AND password REGEXP '^[0-9a-f]{32}$' AND username NOT IN ('admin','vili','rider1')")) {
                     ps.setString(1, encoder.encode("Test1234!"));
                     int other = ps.executeUpdate();
                     if (other > 0) System.out.println("Upgraded " + other + " additional MD5 passwords");
-                }
+                } catch (Exception ignored) {}
             } catch (Exception e) {
                 System.out.println("User upgrade failed: " + e.getMessage());
             }
@@ -187,7 +207,8 @@ public class DataInitConfig {
 
     /** Seed sample messages for the rider. */
     private void seedMessages() {
-        String insertSql = "INSERT IGNORE INTO `rider_message` (`rider_id`, `type`, `title`, `content`, `create_time`) VALUES "
+        // Use plain INSERT with try-catch for idempotency (H2 compatible)
+        String insertSql = "INSERT INTO `rider_message` (`rider_id`, `type`, `title`, `content`, `create_time`) VALUES "
             + "(3, 'order', '新订单提醒 #20260603002', '您有新订单待接单，订单号 20260603002，配送地址：上海市浦东新区', '2026-06-03 09:00:00'),"
             + "(3, 'order', '新订单提醒 #20260604003', '您有新订单待接单，订单号 20260604003，配送地址：北京市朝阳区', '2026-06-04 14:00:00'),"
             + "(3, 'income', '配送收入到账', '订单 #20260601001 配送完成，收入 ¥35.60 已到账', '2026-06-01 16:00:00'),"

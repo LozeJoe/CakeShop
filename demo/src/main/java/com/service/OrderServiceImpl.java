@@ -280,4 +280,37 @@ public class OrderServiceImpl implements OrderService {
         int totalCount = orderMapper.getFilteredOrdersCount(status, keyword);
         return new PageResult<>(data, pageNum, pageSize, totalCount);
     }
+
+    @Override
+    public double getTotalRevenue() { return orderMapper.getTotalRevenue(); }
+
+    @Override
+    public double getTodayRevenue() { return orderMapper.getTodayRevenue(); }
+
+    @Override
+    public int getTodayOrderCount() { return orderMapper.getTodayOrderCount(); }
+
+    @Override
+    public int getCompletedOrderCount() { return orderMapper.getCompletedOrderCount(); }
+
+    @Override
+    public int getPendingOrderCount() { return orderMapper.getPendingOrderCount(); }
+
+    @Override
+    public double getAvgOrderValue() { return orderMapper.getAvgOrderValue(); }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getMonthlySales(String startDate) { return orderMapper.getMonthlySales(startDate); }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getWeeklyOrders(String startDate) { return orderMapper.getWeeklyOrders(startDate); }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getRevenueLast30Days(String startDate) { return orderMapper.getRevenueLast30Days(startDate); }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getCategorySales() { return orderMapper.getCategorySales(); }
+
+    @Override
+    public java.util.List<java.util.Map<String, Object>> getTopGoods() { return orderMapper.getTopGoods(); }
 }

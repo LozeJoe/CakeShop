@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>与客人对话 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" href="/css/style.css">
+    <style>
+        .chat-page{max-width:500px;margin:0 auto;display:flex;flex-direction:column;height:100vh;background:var(--cream);}
+        .chat-header{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--warm-white);border-bottom:1px solid var(--border-light);position:sticky;top:0;z-index:10;}
+        .chat-header .back{text-decoration:none;font-size:20px;color:var(--caramel);}
+        .chat-header .info{flex:1;}
+        .chat-header .name{font-size:15px;font-weight:600;color:var(--espresso);}
+        .chat-header .order-no{font-size:12px;color:var(--caramel);}
+        .chat-body{flex:1;overflow-y:auto;padding:16px;}
+        .chat-footer{display:flex;gap:8px;padding:12px 16px;background:var(--warm-white);border-top:1px solid var(--border-light);}
+        .chat-footer input{flex:1;padding:10px 16px;border:1.5px solid var(--border);border-radius:24px;font-size:14px;outline:none;font-family:inherit;background:var(--cream);}
+        .chat-footer input:focus{border-color:var(--gold);}
+        .chat-footer button{width:44px;height:44px;border-radius:50%;background:var(--gold-dark);color:white;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+        .msg{display:flex;margin-bottom:14px;}
+        .msg.rider{justify-content:flex-end;}
+        .msg.user{justify-content:flex-start;}
+        .msg .bubble{max-width:75%;padding:10px 14px;border-radius:18px;font-size:14px;line-height:1.5;word-break:break-word;}
+        .msg.rider .bubble{background:var(--gold);color:white;border-bottom-right-radius:4px;}
+        .msg.user .bubble{background:var(--warm-white);color:var(--espresso);border:1px solid var(--border-light);border-bottom-left-radius:4px;}
+        .msg .time{font-size:10px;color:var(--caramel);margin-top:4px;text-align:right;}
+        .msg.user .time{text-align:left;}
+        .empty-chat{text-align:center;padding:60px 0;color:var(--caramel);}
+    </style>
+</head>
+<body>
+<div class="chat-page">
+    <div class="chat-header">
+        <a class="back" th:href="@{/rider/messages}">‹</a>
+        <div class="info">
+            <div class="name" th:text="'与 ' + ${order.name} + ' 的对话'">与客人的对话</div>
+            <div class="order-no" th:text="'订单 #' + ${order.id}">订单 #</div>
+        </div>
+    </div>
+    <div class="chat-body" id="chatBody">
+        <div th:if="${chats == null || chats.isEmpty()}" class="empty-chat">暂无消息，发送第一条吧</div>
+        <div th:each="msg : ${chats}" th:class="'msg ' + ${msg.sender}">
+            <div>
+                <div class="bubble" th:text="${msg.content}"></div>
+                <div class="time" th:text="${msg.senderName} + ' · ' + ${#strings.substring(msg.createTime, 11, 16)}">12:00</div>
+            </div>
+        </div>
+    </div>
+    <form class="chat-footer" th:action="@{/rider/chatSend}" method="post">
+        <input type="hidden" name="orderId" th:value="${orderId}">
+        <input type="text" name="content" placeholder="输入消息..." autocomplete="off" required>
+        <button type="submit">➤</button>
+    </form>
+</div>
+</body>
+</html>

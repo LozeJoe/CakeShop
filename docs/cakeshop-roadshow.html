@@ -5,17 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>CakeShop 路演 — HTML PPT</title>
 <link rel="icon" type="image/jpeg" href="logo.jpg">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 
 <!-- ===== INLINED BASE.CSS (核心) ===== -->
 <style>
 :root{
-  --bg:#ffffff;--bg-soft:#f5f7fa;--surface:#ffffff;--surface-2:#f0f3f7;
-  --border:rgba(10,37,64,.12);--border-strong:rgba(10,37,64,.28);
-  --text-1:#0a2540;--text-2:#425466;--text-3:#8898aa;
-  --accent:#0a2540;--accent-2:#1d4ed8;--accent-3:#64748b;
-  --good:#0e9f6e;--warn:#d97706;--bad:#dc2626;
-  --grad:linear-gradient(135deg,#0a2540,#1d4ed8);
-  --grad-soft:linear-gradient(135deg,#f0f4fb,#e4ecf7);
+  --bg:#fdf6ee;--bg-soft:#faf3e8;--surface:#ffffff;--surface-2:#f5ede0;
+  --border:rgba(139,94,60,.12);--border-strong:rgba(139,94,60,.25);
+  --text-1:#2c1a0e;--text-2:#4a2c17;--text-3:#8b5e3c;
+  --accent:#4a2c17;--accent-2:#a06b35;--accent-3:#c8965c;
+  --good:#7a9a6a;--warn:#c8965c;--bad:#d4a09a;
+  --grad:linear-gradient(135deg,#4a2c17,#a06b35);
+  --grad-soft:linear-gradient(135deg,#fdf6ee,#f5ede0);
   --radius:6px;--radius-sm:4px;--radius-lg:10px;
   --shadow:0 4px 12px rgba(10,37,64,.08);--shadow-lg:0 8px 30px rgba(10,37,64,.12);
   --font-sans:'Inter','Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;
@@ -69,7 +70,7 @@ li{margin-bottom:6px}
 .section-divider{text-align:center;align-items:center;background:var(--grad);color:#fff}
 .section-divider h2{color:#fff}
 .section-divider p{color:rgba(255,255,255,.7)}
-.code-block{background:#0a2540;color:#e2e8f0;border-radius:var(--radius);padding:16px;font-family:var(--font-mono);font-size:13px;line-height:1.7;overflow-x:auto;margin:8px 0}
+.code-block{background:#2c1a0e;color:#f5ede0;border-radius:var(--radius);padding:16px;font-family:var(--font-mono);font-size:13px;line-height:1.7;overflow-x:auto;margin:8px 0}
 .thanks{text-align:center;align-items:center}
 .thanks h1{font-size:clamp(48px,6vw,80px)}
 .toc{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:800px}
@@ -79,6 +80,27 @@ th,td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
 th{font-weight:600;background:var(--bg-soft);color:var(--text-1)}
 td{color:var(--text-2)}
 .highlight-row{background:var(--grad-soft);border-radius:6px;padding:16px;margin:12px 0}
+
+/* 动画 */
+.slide .card,.slide h1,.slide h2,.slide h3,.slide p,.slide ul,.slide .toc-item{opacity:0;transform:translateY(30px)}
+.slide.is-active .card,.slide.is-active h1,.slide.is-active h2,.slide.is-active h3,.slide.is-active p,.slide.is-active ul,.slide.is-active .toc-item{opacity:1;transform:translateY(0);transition:opacity .6s ease,transform .6s ease}
+.slide.is-active .card:nth-child(1){transition-delay:.1s}
+.slide.is-active .card:nth-child(2){transition-delay:.15s}
+.slide.is-active .card:nth-child(3){transition-delay:.2s}
+.slide.is-active .card:nth-child(4){transition-delay:.25s}
+.slide.is-active .card:nth-child(5){transition-delay:.3s}
+.slide.is-active .card:nth-child(6){transition-delay:.35s}
+
+/* 截图 hover */
+.screenshot{transition:transform .4s ease,box-shadow .4s ease}
+.screenshot:hover{transform:scale(1.03);box-shadow:0 12px 40px rgba(10,37,64,.2)}
+
+/* 封面光泽 */
+.cover h1{position:relative;overflow:hidden}
+.cover h1::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);transform:skewX(-20deg);animation:shimmer 3s infinite}
+@keyframes shimmer{0%{left:-100%}50%,100%{left:120%}}
+
+
 </style>
 </head>
 <body>
@@ -150,7 +172,7 @@ td{color:var(--text-2)}
 
 <section class="slide" id="slide-6">
   <h2>🌟 核心优势</h2>
-  <div class="grid-2" style="margin-top:16px;">
+  <div class="grid-3" style="margin-top:16px;">
     <div class="card">
       <div class="card-icon">🏗️</div>
       <h4>完整业务闭环</h4>
@@ -192,34 +214,36 @@ td{color:var(--text-2)}
 
 <section class="slide" id="slide-8">
   <h2>🛒 用户端功能</h2>
-  <div class="grid-2" style="margin-top:12px;">
-    <div>
-      <h3>商品浏览</h3>
-      <ul>
-        <li>分类筛选 + 关键词搜索 + 热销排行 + 新品上市</li>
-        <li>多图展示、商品简介、价格库存实时展示</li>
-        <li>GSAP 滚动动画，流畅的浏览体验</li>
-      </ul>
-      <h3 style="margin-top:20px;">购物车</h3>
-      <ul>
-        <li>增删改查、库存实时校验、同商品合并去重</li>
-        <li>一键清空、加减数量</li>
-      </ul>
+  <div class="grid-3" style="margin-top:12px;">
+    <div class="card">
+      <div class="card-icon">🔍</div>
+      <h4>商品浏览</h4>
+      <p>分类筛选 + 搜索 + 热销排行 + 新品上市；GSAP 动画流畅体验</p>
     </div>
-    <div>
-      <h3>订单管理</h3>
-      <ul>
-        <li>完整订单状态机：待支付→待配送→待取货→配送中→已送达</li>
-        <li>取消订单自动恢复库存</li>
-        <li>再来一单功能</li>
-      </ul>
-      <h3 style="margin-top:20px;">📱 更多功能</h3>
-      <ul>
-        <li>商品评价（1-5 星评分 + 文字评价）</li>
-        <li>收藏系统</li>
-        <li>AI 智能客服「小甜」（DeepSeek）</li>
-        <li>Leaflet 地图展示配送地址</li>
-      </ul>
+    <div class="card">
+      <div class="card-icon">🛒</div>
+      <h4>购物车</h4>
+      <p>增删改查、库存校验、同品合并去重、一键清空</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>订单管理</h4>
+      <p>六状态机流转：待支付→待配送→待取货→配送中→已送达；取消恢复库存</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⭐</div>
+      <h4>评价系统</h4>
+      <p>1-5 星评分 + 文字评价，商品详情页展示</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">❤️</div>
+      <h4>收藏 + 更多</h4>
+      <p>收藏系统、Leaflet 地图定位、再来一单</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h4>AI 客服「小甜」</h4>
+      <p>DeepSeek API 驱动，智能问答 + 商品推荐</p>
     </div>
   </div>
 </section>
@@ -262,31 +286,36 @@ td{color:var(--text-2)}
 
 <section class="slide" id="slide-10">
   <h2>🛵 骑手端</h2>
-  <div class="grid-2" style="margin-top:12px;">
-    <div>
-      <h3>配送闭环</h3>
-      <ul>
-        <li>待接单 → 接单 → 待取货 → 开始配送 → 配送中 → 确认送达</li>
-        <li>每一步有状态机校验保护</li>
-      </ul>
-      <h3 style="margin-top:20px;">💰 收入统计</h3>
-      <ul>
-        <li>总收入 / 今日收入 / 总单数 / 今日单数</li>
-        <li>近 7 天收入趋势图</li>
-        <li>配送费优先使用管理员设置值，未设置则按 10% 自动计算</li>
-      </ul>
+  <div class="grid-3" style="margin-top:12px;">
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h4>配送闭环</h4>
+      <p>待接单→接单→待取货→配送中→已送达，全状态机校验保护</p>
     </div>
-    <div>
-      <h3>📬 消息通知</h3>
-      <ul>
-        <li>系统消息推送</li>
-        <li>单条标记已读 / 全部标记已读</li>
-      </ul>
-      <h3 style="margin-top:20px;">👤 个人中心</h3>
-      <ul>
-        <li>个人资料编辑</li>
-        <li>配送数据总览</li>
-      </ul>
+    <div class="card">
+      <div class="card-icon">💰</div>
+      <h4>收入统计</h4>
+      <p>总收入/今日收入/总单数/今日单数 + 近7天趋势图</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💬</div>
+      <h4>消息通知</h4>
+      <p>系统消息推送 + 与客人实时对话，已读/未读标记</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">👤</div>
+      <h4>个人中心</h4>
+      <p>个人资料编辑、配送数据总览</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h4>数据看板</h4>
+      <p>余额/累计收入/配送单数一屏展示</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗺️</div>
+      <h4>订单定位</h4>
+      <p>Leaflet 地图展示配送地址</p>
     </div>
   </div>
 </section>
@@ -299,80 +328,71 @@ td{color:var(--text-2)}
 
 <section class="slide" id="slide-12">
   <h2>🏗️ 系统架构</h2>
-  <div class="code-block" style="margin-bottom:12px;">
-CakeShop/<br>
-├── controller/     # 7 个 Controller · 50+ API 端点<br>
-├── service/        # 业务逻辑层 · 状态机 · 事务管理<br>
-├── mapper/         # MyBatis 持久层 · 11 个 Mapper<br>
-├── javaBean/       # 11 个实体类<br>
-├── config/         # 拦截器 · 切面 · 编码 · 全局配置<br>
-├── resources/<br>
-│   ├── templates/  # 40+ 个 Thymeleaf 模板（用户+管理+骑手）<br>
-│   ├── static/     # CSS/JS/图片/字体<br>
-│   └── i18n/       # 中英文国际化文件<br>
-└── sql/init.sql    # 完整 DDL + 种子数据
-  </div>
-  <div class="grid-3" style="margin-top:8px;">
-    <div class="metric">
-      <span class="metric-num">8</span>
-      <span class="metric-label">Controller</span>
+  <div class="grid-2" style="margin-top:12px;gap:20px;align-items:center;">
+    <div class="code-block" style="margin:0;font-size:13px;line-height:1.9;">
+<span style="color:#e8c98b">CakeShop</span>/<br>
+├── <span style="color:#c8965c">controller/</span>   8 个 · 50+ API<br>
+├── <span style="color:#c8965c">service/</span>      状态机 · 事务管理<br>
+├── <span style="color:#c8965c">mapper/</span>       11 个 Mapper<br>
+├── <span style="color:#c8965c">javaBean/</span>     12 个实体类<br>
+├── <span style="color:#c8965c">config/</span>       拦截器 · 切面 · 安全<br>
+└── <span style="color:#c8965c">resources/</span>    Thymeleaf · i18n · 静态
     </div>
-    <div class="metric">
-      <span class="metric-num">50+</span>
-      <span class="metric-label">API 端点</span>
-    </div>
-    <div class="metric">
-      <span class="metric-num">235</span>
-      <span class="metric-label">自动化测试</span>
+    <div>
+      <div class="grid-2" style="gap:16px;">
+        <div class="metric" style="background:var(--bg-soft);border-radius:var(--radius-lg);">
+          <span class="metric-num">8</span>
+          <span class="metric-label">Controller</span>
+        </div>
+        <div class="metric" style="background:var(--bg-soft);border-radius:var(--radius-lg);">
+          <span class="metric-num">50+</span>
+          <span class="metric-label">API 端点</span>
+        </div>
+        <div class="metric" style="background:var(--bg-soft);border-radius:var(--radius-lg);">
+          <span class="metric-num">12</span>
+          <span class="metric-label">实体类</span>
+        </div>
+        <div class="metric" style="background:var(--bg-soft);border-radius:var(--radius-lg);">
+          <span class="metric-num">236</span>
+          <span class="metric-label">自动化测试</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <section class="slide" id="slide-13">
   <h2>🔬 技术亮点</h2>
-  <div class="grid-2" style="margin-top:12px;">
+  <div class="grid-3" style="margin-top:12px;">
     <div class="card">
-      <h4>📋 订单状态机</h4>
-      <div class="code-block" style="font-size:12px;margin-top:8px;">
-USER_TRANSITIONS:<br>
-1(待支付) → 2(待配送), 6(已取消)<br>
-2(待配送) → 3(待取货), 6(已取消)<br>
-3(待取货) → 4(配送中), 6(已取消)<br>
-4(配送中) → 5(已送达)<br>
-ADMIN_TRANSITIONS: 可强制向前流转
-      </div>
-      <p style="margin-top:8px;font-size:13px;">12 条非法路径测试全覆盖，终态不可回退</p>
+      <div class="card-icon">📋</div>
+      <h4>订单状态机</h4>
+      <p style="font-size:13px;">六状态流转（待支付→待配送→待取货→配送中→已送达），用户/管理员双流转表，终态不可回退</p>
     </div>
     <div class="card">
-      <h4>🧪 测试体系</h4>
-      <table style="font-size:12px;">
-        <tr><th>类型</th><th>套件</th><th>用例</th></tr>
-        <tr><td>单元测试</td><td>10</td><td>99</td></tr>
-        <tr><td>集成测试</td><td>6</td><td>35</td></tr>
-        <tr><td>Controller</td><td>9</td><td>62</td></tr>
-        <tr><td>E2E</td><td>4</td><td>40</td></tr>
-        <tr><td><strong>总计</strong></td><td><strong>29</strong></td><td><strong>235 ✅</strong></td></tr>
-      </table>
+      <div class="card-icon">🧪</div>
+      <h4>全链路测试</h4>
+      <p style="font-size:13px;">单元 99 + 集成 35 + Controller 62 + E2E 40 = <strong>236 用例全通过</strong></p>
     </div>
     <div class="card">
-      <h4>🔒 安全防护</h4>
-      <ul style="font-size:14px;">
-        <li>BCrypt 密码加密（替代不安全的 MD5）</li>
-        <li>旧 MD5 密码自动升级为 BCrypt</li>
-        <li>XSS 输入净化（HTML/脚本标签过滤）</li>
-        <li>SQL 注入防护（MyBatis #{} 参数绑定）</li>
-        <li>登录拦截器 + 管理员权限守卫</li>
-        <li>订单状态机校验（禁止非法跳转）</li>
-      </ul>
+      <div class="card-icon">🔒</div>
+      <h4>安全防护</h4>
+      <p style="font-size:13px;">BCrypt 加密、MD5 自动升级、XSS 净化、SQL 注入防护、权限守卫</p>
     </div>
     <div class="card">
-      <h4>🐳 Docker 部署</h4>
-      <div class="code-block" style="font-size:12px;margin-top:8px;">
-docker-compose up -d<br>
-# MySQL 8.0 + Spring Boot 应用<br>
-# sql/init.sql 自动初始化<br>
-# 端口映射 3308:3306, 8090:8090
-      </div>
+      <div class="card-icon">🐳</div>
+      <h4>Docker 部署</h4>
+      <p style="font-size:13px;"><code>docker-compose up -d</code> 一键启动 MySQL + 应用，sql 自动初始化</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h4>i18n 国际化</h4>
+      <p style="font-size:13px;">中英文双语界面，CookieLocaleResolver 自动检测语言偏好</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🤖</div>
+      <h4>AI + 地图</h4>
+      <p style="font-size:13px;">DeepSeek 智能客服 + Leaflet 地图定位配送地址</p>
     </div>
   </div>
 </section>
@@ -431,42 +451,30 @@ docker-compose up -d<br>
 
 <section class="slide" id="slide-18">
   <h2>🔑 关键问题与解决方案</h2>
-  <div class="grid-2" style="margin-top:8px;">
+  <div class="grid-3" style="margin-top:8px;">
     <div class="card">
-      <h4>❌ 问题：MD5 密码加密不安全</h4>
-      <p>用户密码使用无盐 MD5 存储，极易被彩虹表破解</p>
-      <h4 style="margin-top:12px;">✅ 解决方案</h4>
-      <p>升级为 BCrypt（自适应哈希+随机盐），旧用户首次登录自动迁移；注册/改密码严格校验强度（大小写+数字+符号≥8位）</p>
+      <h4>🔐 MD5 → BCrypt</h4>
+      <p style="font-size:13px;">无盐 MD5 替换为自适应哈希+随机盐，旧用户自动迁移，密码强度校验（大写+小写+数字+符号≥8位）</p>
     </div>
     <div class="card">
-      <h4>❌ 问题：订单状态无校验</h4>
-      <p>管理员可以随意跳转状态，已送达可改回待支付，已取消可重新激活</p>
-      <h4 style="margin-top:12px;">✅ 解决方案</h4>
-      <p>设计完整状态机，用户/管理员双流转表，34 个测试覆盖所有路径</p>
+      <h4>📋 订单状态机</h4>
+      <p style="font-size:13px;">用户/管理员双流转表，终态不可回退，34 个测试覆盖全部路径，禁止非法状态跳转</p>
     </div>
     <div class="card">
-      <h4>❌ 问题：骑手配送费硬编码</h4>
-      <p>骑手收入恒为订单 10%，管理员设置的配送费不生效</p>
-      <h4 style="margin-top:12px;">✅ 解决方案</h4>
-      <p>改为优先读取 order.commission，兼容未设置时回退 10%</p>
+      <h4>💰 配送费修复</h4>
+      <p style="font-size:13px;">优先读取管理员设置的 commission，未设置时回退按订单金额 10% 自动计算</p>
     </div>
     <div class="card">
-      <h4>❌ 问题：搜索翻页失效</h4>
-      <p>搜索结果翻页后跳回全量商品列表</p>
-      <h4 style="margin-top:12px;">✅ 解决方案</h4>
-      <p>分页链接添加 keyword 参数，保持搜索上下文</p>
+      <h4>🔍 搜索翻页</h4>
+      <p style="font-size:13px;">搜索结果翻页链接添加 keyword 参数，保持搜索上下文不丢失</p>
     </div>
     <div class="card">
-      <h4>❌ 问题：取消订单购物车重复</h4>
-      <p>取消订单后商品重新加入购物车，多次取消产生重复记录</p>
-      <h4 style="margin-top:12px;">✅ 解决方案</h4>
-      <p>合并逻辑：检查购物车是否已存在，存在则累加数量而非新建</p>
+      <h4>🛒 购物车去重</h4>
+      <p style="font-size:13px;">取消订单时检查购物车已有商品，存在则累加数量而非新建重复记录</p>
     </div>
     <div class="card">
-      <h4>❌ 问题：注册表单校验缺失</h4>
-      <p>手机号无格式校验、注册无邮箱字段、地址为自由文本、密码仅要求6位</p>
-      <h4 style="margin-top:12px;">✅ 解决方案</h4>
-      <p>手机号11位正则校验、邮箱字段+格式验证、密码强度实时指示器、省市区三级联动下拉框；修改密码需验证旧密码</p>
+      <h4>📝 注册校验</h4>
+      <p style="font-size:13px;">手机号11位正则校验、邮箱格式验证、密码强度实时指示器、省市区三级联动</p>
     </div>
   </div>
 </section>
@@ -549,10 +557,15 @@ docker-compose up -d<br>
 
   function goTo(idx){
     if(idx < 0 || idx >= total || idx === current) return;
-    slides[current].classList.remove('is-active');
-    slides[idx].classList.add('is-active');
+    var oldSlide = slides[current];
+    var newSlide = slides[idx];
+    var dir = idx > current ? 1 : -1;
+    // GSAP 滑动翻页
+    gsap.to(oldSlide, {opacity:0, x:-30*dir, duration:.25, onComplete:function(){oldSlide.classList.remove('is-active');}});
+    newSlide.classList.add('is-active');
+    gsap.fromTo(newSlide, {opacity:0, x:30*dir}, {opacity:1, x:0, duration:.35, ease:'power2.out'});
     current = idx;
-    progress.style.width = ((current + 1) / total * 100) + '%';
+    gsap.to(progress, {width:((current + 1) / total * 100) + '%', duration:.3});
     numEl.textContent = (current + 1) + ' / ' + total;
     location.hash = 'slide-' + (current + 1);
   }
@@ -565,17 +578,16 @@ docker-compose up -d<br>
     if(e.key === 'End'){ goTo(total - 1); }
   });
 
-  // Hash navigation
   var hashIdx = parseInt(location.hash.replace('#slide-','')) - 1;
   if(!isNaN(hashIdx) && hashIdx >= 0 && hashIdx < total) goTo(hashIdx);
 
-  // Touch support
   var touchStartX = 0;
   document.addEventListener('touchstart', function(e){ touchStartX = e.changedTouches[0].screenX; });
   document.addEventListener('touchend', function(e){
     var diff = touchStartX - e.changedTouches[0].screenX;
     if(Math.abs(diff) > 50){ diff > 0 ? goTo(current + 1) : goTo(current - 1); }
   });
+
 })();
 </script>
 </body>

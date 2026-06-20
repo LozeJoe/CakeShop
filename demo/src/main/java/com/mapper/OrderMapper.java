@@ -60,7 +60,7 @@ public interface OrderMapper {
             "</script>")
     public int getFilteredOrdersCount(@Param("status") int status, @Param("keyword") String keyword);
 
-    @Select("select status, count(*) as cnt from `order` group by status order by status")
+    @Select("select status as `status`, count(*) as `cnt` from `order` group by status order by status")
     public List<java.util.Map<String, Object>> getOrderStatusDistribution();
 
     // ===== 骑手相关 =====
@@ -104,11 +104,11 @@ public interface OrderMapper {
     int getTotalCompletedCount(@Param("riderId") int riderId);
 
     // 近7天每日配送收入统计
-    @Select("select date(datetime) as day, count(*) as order_count, coalesce(sum(rider_income),0) as total_income " +
+    @Select("select date(datetime) as `day`, count(*) as `order_count`, coalesce(sum(rider_income),0) as `total_income` " +
             "from `order` where rider_id = #{riderId} and status = 5 " +
-            "and datetime >= date_sub(curdate(), interval 6 day) " +
-            "group by date(datetime) order by day desc")
-    List<java.util.Map<String, Object>> getDailyIncomeLast7Days(@Param("riderId") int riderId);
+            "and datetime >= #{startDate} " +
+            "group by date(datetime) order by `day` desc")
+    List<java.util.Map<String, Object>> getDailyIncomeLast7Days(@Param("riderId") int riderId, @Param("startDate") String startDate);
 
     @Update("update `order` set rider_id = #{riderId}, status = 3 where id = #{id}")
     void acceptOrder(@Param("id") String id, @Param("riderId") int riderId);
@@ -127,4 +127,49 @@ public interface OrderMapper {
 
     @Update("update `order` set review_rating = #{rating}, review_content = #{content} where id = #{id}")
     void setReview(@Param("id") String id, @Param("rating") int rating, @Param("content") String content);
+
+    // ===== 管理后台统计 =====
+    @Select("select coalesce(sum(total), 0) from `order` where status = 5")
+    double getTotalRevenue();
+
+    @Select("select coalesce(sum(total), 0) from `order` where status = 5 and date(datetime) = curdate()")
+    double getTodayRevenue();
+
+    @Select("select count(*) from `order` where date(datetime) = curdate()")
+    int getTodayOrderCount();
+
+    @Select("select count(*) from `order` where status = 5")
+    int getCompletedOrderCount();
+
+    @Select("select count(*) from `order` where status in (1, 2)")
+    int getPendingOrderCount();
+
+    @Select("select coalesce(avg(total), 0) from `order` where status in (2,3,4,5)")
+    double getAvgOrderValue();
+
+    @Select("select concat(year(datetime), '-', lpad(month(datetime), 2, '0')) as `month`, " +
+            "count(*) as `orders`, coalesce(sum(total), 0) as `revenue` " +
+            "from `order` where status >= 2 and datetime >= #{startDate} " +
+            "group by concat(year(datetime), '-', lpad(month(datetime), 2, '0')) order by `month`")
+    List<java.util.Map<String, Object>> getMonthlySales(@Param("startDate") String startDate);
+    List<java.util.Map<String, Object>> getMonthlySales();
+
+    @Select("select date(datetime) as `day`, count(*) as `cnt` from `order` " +
+            "where datetime >= #{startDate} " +
+            "group by date(datetime) order by `day`")
+    List<java.util.Map<String, Object>> getWeeklyOrders(@Param("startDate") String startDate);
+
+    @Select("select date(datetime) as `day`, coalesce(sum(total), 0) as `revenue` from `order` " +
+            "where status >= 2 and datetime >= #{startDate} " +
+            "group by date(datetime) order by `day`")
+    List<java.util.Map<String, Object>> getRevenueLast30Days(@Param("startDate") String startDate);
+
+    @Select("select t.name as `type_name`, coalesce(sum(oi.amount), 0) as `sales` " +
+            "from orderitem oi join goods g on oi.goods_id = g.id " +
+            "join type t on g.type_id = t.id join `order` o on oi.order_id = o.id " +
+            "where o.status >= 2 group by t.id, t.name order by `sales` desc limit 10")
+    List<java.util.Map<String, Object>> getCategorySales();
+
+    @Select("select g.id, g.name, g.cover, g.sales from goods g order by g.sales desc limit 10")
+    List<java.util.Map<String, Object>> getTopGoods();
 }

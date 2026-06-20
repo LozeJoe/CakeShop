@@ -143,7 +143,8 @@ public class RiderService {
     }
 
     public List<Map<String, Object>> getDailyIncomeLast7Days(int riderId) {
-        return orderMapper.getDailyIncomeLast7Days(riderId);
+        String weekStart = java.time.LocalDate.now().minusDays(6).toString();
+        return orderMapper.getDailyIncomeLast7Days(riderId, weekStart);
     }
 
     // ===== 消息相关 =====

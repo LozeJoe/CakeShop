@@ -46,6 +46,19 @@
             <a th:href="@{/rider/markRead(messageId=0)}" th:if="${unreadCount > 0}">全部标为已读</a>
         </div>
 
+        <!-- 与客人对话 -->
+        <div th:if="${recentChats != null && !recentChats.isEmpty()}" style="margin-bottom:20px;">
+            <div style="font-size:14px;font-weight:600;color:var(--espresso);margin-bottom:10px;">💬 与客人对话</div>
+            <a th:each="chat : ${recentChats}" th:href="@{/rider/chat(orderId=${chat.orderId})}"
+               style="display:block;background:var(--warm-white);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:8px;box-shadow:var(--shadow-sm);border:1px solid var(--border-light);text-decoration:none;color:var(--espresso);">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:600;" th:text="'订单 #' + ${chat.orderId}"></span>
+                    <span style="font-size:11px;color:var(--caramel);" th:text="${#strings.substring(chat.createTime, 0, 16)}"></span>
+                </div>
+                <div style="font-size:13px;color:var(--caramel);margin-top:4px;" th:text="${chat.senderName} + ': ' + ${chat.content}">最新消息</div>
+            </a>
+        </div>
+
         <!-- 筛选标签 -->
         <div class="filter-tabs">
             <a th:href="@{/rider/messages(type='all')}" th:classappend="${currentType=='all'?'active':''}">全部</a>

@@ -22,6 +22,7 @@ public interface UserService {
     PageResult<User> getUnverifiedUsers(int pageNum, int pageSize);
     int getUnverifiedCount();
     PageResult<User> getRidersByPage(int pageNum, int pageSize);
+    int getRiderCount();
     void verifyUser(int id);
     void freezeUser(int id);
     void unfreezeUser(int id);

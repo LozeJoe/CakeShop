@@ -26,6 +26,9 @@ public class RiderController {
     @Resource
     private OrderService orderService;
 
+    @Resource
+    private com.service.RiderChatService riderChatService;
+
     @RequestMapping("/login")
     public ModelAndView loginPage() {
         // Redirect to unified login page with rider tab active
@@ -39,11 +42,13 @@ public class RiderController {
         User rider = riderService.login(username, password);
         if (rider != null) {
             request.getSession().setAttribute("rider", rider);
+            request.getSession().setAttribute("user", rider);  // 也存到 user，方便顶部导航栏识别
             return new ModelAndView("redirect:/rider/index");
         }
-        // Return to unified login page with error via query param
+        // 登录失败 → 回到登录页，带上错误信息和角色参数
         try {
-            return new ModelAndView("redirect:/user/login?role=rider&riderError=" + java.net.URLEncoder.encode("骑手账号或密码错误", "UTF-8"));
+            return new ModelAndView("redirect:/user/login?role=rider&riderError="
+                + java.net.URLEncoder.encode("骑手账号或密码错误", "UTF-8"));
         } catch (Exception e) {
             return new ModelAndView("redirect:/user/login?role=rider&riderError=登录失败");
         }
@@ -52,6 +57,7 @@ public class RiderController {
     @RequestMapping("/logout")
     public ModelAndView logout(HttpServletRequest request) {
         request.getSession().removeAttribute("rider");
+        request.getSession().removeAttribute("user");
         return new ModelAndView("redirect:/user/login?role=rider");
     }
 
@@ -151,13 +157,28 @@ public class RiderController {
     }
 
     @RequestMapping("/editProfile")
-    public ModelAndView editProfile(User riderForm, HttpServletRequest request) {
+    public ModelAndView editProfile(HttpServletRequest request) {
         User session = (User) request.getSession().getAttribute("rider");
         if (session == null) return new ModelAndView("redirect:/rider/login");
-        riderForm.setId(session.getId());
-        riderForm.setIsadmin("2");
-        riderService.updateProfile(riderForm);
+
+        User fresh = riderService.getById(session.getId());
+        String name = request.getParameter("name");
+        String phone = request.getParameter("phone");
+        String email = request.getParameter("email");
+        String address = request.getParameter("address");
+        String newPassword = request.getParameter("newPassword");
+
+        if (name != null && !name.trim().isEmpty()) fresh.setName(name.trim());
+        if (phone != null && !phone.trim().isEmpty()) fresh.setPhone(phone.trim());
+        if (email != null && !email.trim().isEmpty()) fresh.setEmail(email.trim());
+        if (address != null && !address.trim().isEmpty()) fresh.setAddress(address.trim());
+        if (newPassword != null && !newPassword.trim().isEmpty()) {
+            fresh.setPassword(new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().encode(newPassword.trim()));
+        }
+
+        riderService.updateProfile(fresh);
         request.getSession().setAttribute("rider", riderService.getById(session.getId()));
+        request.getSession().setAttribute("user", riderService.getById(session.getId()));
         return new ModelAndView("redirect:/rider/profile");
     }
 
@@ -170,12 +191,15 @@ public class RiderController {
 
         PageResult<RiderMessage> messages = riderService.getMessages(rider.getId(), type, page, 20);
         int unreadCount = riderService.getUnreadCount(rider.getId());
+        // 获取配送中的订单及其聊天记录
+        List<com.javaBean.RiderChat> recentChats = riderChatService.getRecentChats(rider.getId());
 
         ModelAndView mv = new ModelAndView("rider/messages");
         mv.addObject("rider", rider);
         mv.addObject("messages", messages);
         mv.addObject("currentType", type);
         mv.addObject("unreadCount", unreadCount);
+        mv.addObject("recentChats", recentChats);
         return mv;
     }
 
@@ -190,6 +214,33 @@ public class RiderController {
             riderService.markAllMessagesRead(rider.getId());
         }
         return new ModelAndView("redirect:/rider/messages");
+    }
+
+    // ═══════════════ 骑手-用户对话 ═══════════════
+    @RequestMapping("/chat")
+    public ModelAndView chat(@RequestParam("orderId") String orderId, HttpServletRequest request) {
+        User rider = (User) request.getSession().getAttribute("rider");
+        if (rider == null) return new ModelAndView("redirect:/rider/login");
+        Order order = orderService.getOrderById(orderId);
+        List<com.javaBean.RiderChat> chats = riderChatService.getMessages(orderId);
+        ModelAndView mv = new ModelAndView("rider/chat");
+        mv.addObject("rider", rider);
+        mv.addObject("order", order);
+        mv.addObject("orderId", orderId);
+        mv.addObject("chats", chats);
+        return mv;
+    }
+
+    @RequestMapping("/chatSend")
+    public ModelAndView chatSend(@RequestParam("orderId") String orderId,
+                                  @RequestParam("content") String content,
+                                  HttpServletRequest request) {
+        User rider = (User) request.getSession().getAttribute("rider");
+        if (rider == null) return new ModelAndView("redirect:/rider/login");
+        if (content != null && !content.trim().isEmpty()) {
+            riderChatService.sendMessage(orderId, "rider", rider.getName(), content.trim());
+        }
+        return new ModelAndView("redirect:/rider/chat?orderId=" + orderId);
     }
 
     @RequestMapping("/income")

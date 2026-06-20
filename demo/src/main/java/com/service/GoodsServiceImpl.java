@@ -117,4 +117,10 @@ public class GoodsServiceImpl implements GoodsService {
     public int getLowStockCount(int threshold) {
         return goodsMapper.getLowStockCount(threshold);
     }
+
+    @Override
+    public int getTotalStock() { return goodsMapper.getTotalStock(); }
+
+    @Override
+    public List<Goods> getLowStockGoods(int threshold) { return goodsMapper.getLowStockGoods(threshold); }
 }

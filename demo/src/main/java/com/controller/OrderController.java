@@ -29,6 +29,9 @@ public class OrderController {
     @Resource
     private GoodsService goodsService;
 
+    @Resource
+    private com.service.RiderChatService riderChatService;
+
     @RequestMapping("/orderList")
     public ModelAndView orderList(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
@@ -304,6 +307,36 @@ public class OrderController {
             modelAndView.setViewName("error");
         }
         return modelAndView;
+    }
+
+    // ═══════════════ 用户-骑手对话 ═══════════════
+    @RequestMapping("/chat")
+    public ModelAndView chat(@RequestParam("orderId") String orderId, HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) return new ModelAndView("redirect:/user/login");
+        Order order = orderService.getOrderById(orderId);
+        List<com.javaBean.RiderChat> chats = riderChatService.getMessages(orderId);
+        ModelAndView mv = new ModelAndView("orderChat");
+        mv.addObject("user", user);
+        mv.addObject("order", order);
+        mv.addObject("orderId", orderId);
+        mv.addObject("chats", chats);
+        mv.addObject("typelist", typeService.getAllTypes());
+        return mv;
+    }
+
+    @RequestMapping("/chatSend")
+    public ModelAndView chatSend(@RequestParam("orderId") String orderId,
+                                  @RequestParam("content") String content,
+                                  HttpServletRequest request) {
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null) return new ModelAndView("redirect:/user/login");
+        if (content != null && !content.trim().isEmpty()) {
+            riderChatService.sendMessage(orderId, "user", user.getName() != null ? user.getName() : user.getUsername(), content.trim());
+        }
+        return new ModelAndView("redirect:/order/chat?orderId=" + orderId);
     }
 
     @RequestMapping("/reorder")

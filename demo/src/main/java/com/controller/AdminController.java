@@ -53,60 +53,17 @@ public class AdminController {
                 return modelAndView;
             }
 
-            // 统计数据
-            int userCount = userService.getUserCount();
-            int goodsCount = goodsService.getGoodsCount();
-            int orderCount = orderService.getOrderCount();
-            int typeCount = typeService.getTypeCount();
-            int lowStockCount = goodsService.getLowStockCount(5);
-
+            // AJAX 请求：只渲染内容片段，侧栏由前端保持不变
+            boolean ajax = "true".equals(request.getParameter("ajax"));
+            
             // 最近订单（取最新5条）
             PageResult<Order> recentOrders = orderService.getFilteredOrdersPage(0, null, 1, 5);
-
-            // ECharts 数据：订单状态分布
-            java.util.List<java.util.Map<String, Object>> statusDist = orderService.getOrderStatusDistribution();
-            // 构建状态分布 JSON
-            StringBuilder statusJson = new StringBuilder("[");
-            String[] statusNames = {"", "待支付", "待配送", "待取货", "配送中", "已送达", "已取消"};
-            for (java.util.Map<String, Object> row : statusDist) {
-                int s = ((Number) row.get("status")).intValue();
-                long cnt = ((Number) row.get("cnt")).longValue();
-                String name = (s >= 1 && s <= 5) ? statusNames[s] : "未知";
-                statusJson.append("{\"value\":").append(cnt).append(",\"name\":\"").append(name).append("\"},");
-            }
-            if (statusJson.length() > 1 && statusJson.charAt(statusJson.length() - 1) == ',') statusJson.setLength(statusJson.length() - 1);
-            statusJson.append("]");
-
-            // 分类销售数据
-            java.util.List<Type> types = typeService.getAllTypes();
-            StringBuilder typeNamesJson = new StringBuilder("[");
-            StringBuilder typeSalesJson = new StringBuilder("[");
-            for (Type t : types) {
-                java.util.List<Goods> goodsList = goodsService.getGoodsByType(t.getId());
-                int totalSales = 0;
-                for (Goods g : goodsList) totalSales += g.getSales();
-                typeNamesJson.append("\"").append(t.getName()).append("\",");
-                typeSalesJson.append(totalSales).append(",");
-            }
-            if (types.size() > 0) {
-                typeNamesJson.setLength(typeNamesJson.length() - 1);
-                typeSalesJson.setLength(typeSalesJson.length() - 1);
-            }
-            typeNamesJson.append("]");
-            typeSalesJson.append("]");
-
-            modelAndView.addObject("userCount", userCount);
-            modelAndView.addObject("goodsCount", goodsCount);
-            modelAndView.addObject("orderCount", orderCount);
-            modelAndView.addObject("typeCount", typeCount);
-            modelAndView.addObject("lowStockCount", lowStockCount);
+            
             modelAndView.addObject("recentOrders", recentOrders.getData());
-            modelAndView.addObject("statusDistributionJson", statusJson.toString());
-            modelAndView.addObject("typeNamesJson", typeNamesJson.toString());
-            modelAndView.addObject("typeSalesJson", typeSalesJson.toString());
             modelAndView.addObject("typelist", typeService.getAllTypes());
             modelAndView.addObject("sidebarActive", "index");
             modelAndView.addObject("pageTitle", "数据概览");
+            modelAndView.addObject("ajax", ajax);
             modelAndView.setViewName("admin/index");
         } catch (Exception e) {
             e.printStackTrace();

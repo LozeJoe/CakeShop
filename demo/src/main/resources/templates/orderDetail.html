@@ -92,6 +92,7 @@
 
         <div style="margin-top:20px;display:flex;gap:10px;">
             <a th:href="@{/order/myOrder}" class="btn btn-secondary">← 返回订单列表</a>
+            <a th:if="${order.status >= 3 && order.status <= 4}" th:href="@{/order/chat(orderId=${order.id})}" class="btn btn-primary">💬 联系骑手</a>
             <button th:if="${order.status == 1}" class="btn btn-danger" th:attr="onclick='cancelOrder(\'' + ${order.id} + '\')'">取消订单</button>
         </div>
     </div>

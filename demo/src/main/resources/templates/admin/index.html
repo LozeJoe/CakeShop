@@ -7,78 +7,226 @@
     <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <style>
+        /* 8列 KPI 网格 */
+        .stats-grid{grid-template-columns:repeat(4,1fr);}
+        @media(min-width:1400px){.stats-grid{grid-template-columns:repeat(4,1fr);}}
+        
+        .kpi-card{
+            background:var(--white);border-radius:var(--radius-lg);
+            padding:24px 22px;box-shadow:0 1px 3px rgba(0,0,0,.04),0 4px 12px rgba(0,0,0,.03);
+            transition:all .35s cubic-bezier(.25,.1,.25,1);
+            position:relative;overflow:hidden;cursor:default;
+        }
+        .kpi-card:hover{transform:translateY(-4px);box-shadow:0 8px 30px rgba(0,0,0,.1);}
+        .kpi-card::before{
+            content:'';position:absolute;top:0;left:0;right:0;height:3px;
+            transition:opacity .35s;
+        }
+        .kpi-card:hover::before{opacity:1;}
+        .kpi-card .kpi-icon{font-size:28px;margin-bottom:8px;}
+        .kpi-card .kpi-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+        .kpi-card .kpi-value{font-size:36px;font-weight:700;letter-spacing:-.03em;line-height:1.1;}
+        .kpi-card .kpi-sub{font-size:12px;margin-top:4px;opacity:.7;}
+
+        /* 主题色 — 法式烘焙暖调 */
+        .kpi-gold::before{background:linear-gradient(90deg,var(--gold-dark),var(--gold));}
+        .kpi-gold .kpi-label,.kpi-gold .kpi-icon{color:var(--gold-dark);}
+        .kpi-gold .kpi-value{color:var(--espresso);}
+
+        .kpi-caramel::before{background:linear-gradient(90deg,var(--caramel),var(--gold));}
+        .kpi-caramel .kpi-label,.kpi-caramel .kpi-icon{color:var(--caramel);}
+        .kpi-caramel .kpi-value{color:var(--espresso);}
+
+        .kpi-chocolate::before{background:linear-gradient(90deg,var(--chocolate),var(--caramel));}
+        .kpi-chocolate .kpi-label,.kpi-chocolate .kpi-icon{color:var(--chocolate);}
+        .kpi-chocolate .kpi-value{color:var(--espresso);}
+
+        .kpi-rose::before{background:linear-gradient(90deg,var(--rose),var(--blush));}
+        .kpi-rose .kpi-label,.kpi-rose .kpi-icon{color:var(--rose);}
+        .kpi-rose .kpi-value{color:var(--espresso);}
+
+        .kpi-sage::before{background:linear-gradient(90deg,#8a9e7a,var(--sage));}
+        .kpi-sage .kpi-label,.kpi-sage .kpi-icon{color:#7a8a6a;}
+        .kpi-sage .kpi-value{color:var(--espresso);}
+
+        .kpi-blush::before{background:linear-gradient(90deg,var(--rose),var(--blush));}
+        .kpi-blush .kpi-label,.kpi-blush .kpi-icon{color:var(--rose);}
+        .kpi-blush .kpi-value{color:var(--espresso);}
+
+        /* 图表 */
         .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;}
         .chart-card{background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:20px;}
-        .chart-card h3{font-size:14px;font-weight:600;color:var(--black);margin-bottom:16px;}
+        .chart-card h3{font-size:13px;font-weight:600;color:var(--black);margin-bottom:14px;}
         .chart-box{width:100%;height:320px;}
-        .alert-row{background:rgba(255,59,48,.04);}
-        .section-title{font-size:13px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;padding-left:4px;}
+        .chart-full{grid-column:1/-1;}
+
+        /* 刷新栏 */
+        .refresh-bar{
+            display:flex;align-items:center;justify-content:flex-end;
+            gap:10px;margin-bottom:14px;
+        }
+        .refresh-bar .countdown{
+            font-size:12px;color:var(--light);font-variant-numeric:tabular-nums;
+        }
+        .refresh-btn{
+            background:var(--white);border:1.5px solid var(--border);
+            border-radius:var(--radius-full);padding:6px 18px;font-size:12px;
+            cursor:pointer;color:var(--black);transition:all .25s;
+            display:flex;align-items:center;gap:5px;
+        }
+        .refresh-btn:hover{background:var(--gold-dark);color:white;border-color:var(--gold-dark);}
+        .refresh-btn.spinning .refresh-icon{animation:spin .6s linear infinite;}
+        .refresh-icon{display:inline-block;font-size:14px;}
+        @keyframes spin{to{transform:rotate(360deg);}}
+
+        /* 骨架屏 */
+        .skeleton{background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px;}
+        @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+        .kpi-value.loading{color:transparent!important;background:#f0f0f0;border-radius:6px;display:inline-block;min-width:80px;}
+        
+        /* 库存预警弹窗 */
+        .stock-overlay{
+            display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+            z-index:1000;justify-content:center;align-items:center;
+            backdrop-filter:blur(4px);
+        }
+        .stock-overlay.show{display:flex;animation:fadeInOverlay .3s ease;}
+        @keyframes fadeInOverlay{from{opacity:0}to{opacity:1}}
+        .stock-dialog{
+            background:var(--white);border-radius:var(--radius-xl);
+            width:90%;max-width:520px;box-shadow:var(--shadow-lg);
+            animation:slideInDialog .4s cubic-bezier(.34,1.56,.64,1);
+            border:1px solid var(--border);
+        }
+        @keyframes slideInDialog{
+            from{opacity:0;transform:translateY(-30px) scale(.96)}
+            to{opacity:1;transform:translateY(0) scale(1)}
+        }
+        .stock-dialog-header{
+            padding:18px 24px;display:flex;justify-content:space-between;align-items:center;
+            border-bottom:1px solid var(--border);
+        }
+        .stock-dialog-header h3{font-size:17px;font-weight:600;color:var(--black);}
+        .stock-dialog-close{cursor:pointer;font-size:22px;color:var(--light);background:none;border:none;line-height:1;}
+        .stock-dialog-close:hover{color:var(--black);}
+        .stock-dialog-body{padding:20px 24px;max-height:360px;overflow-y:auto;}
+        .stock-item{
+            display:flex;justify-content:space-between;align-items:center;
+            padding:10px 0;border-bottom:1px solid var(--border);
+        }
+        .stock-item:last-child{border-bottom:none;}
+        .stock-item .si-name{font-weight:500;color:var(--black);}
+        .stock-item .si-stock{font-size:12px;font-weight:600;padding:2px 10px;border-radius:var(--radius-full);}
+        .si-out{background:rgba(255,59,48,.12);color:var(--red);}
+        .si-low{background:rgba(255,149,0,.12);color:var(--orange);}
+        .stock-dialog-footer{padding:16px 24px;border-top:1px solid var(--border);text-align:right;}
+
+        /* 最近订单 */
         .quick-list{list-style:none;}
         .quick-list li{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid #f5f5f7;font-size:13px;transition:background .2s;}
         .quick-list li:hover{background:#fafafa;}
         .quick-list li:last-child{border-bottom:none;}
         .quick-list .meta{color:var(--light);font-size:12px;}
         .quick-list .val{font-weight:600;color:var(--black);}
-        .badge{padding:2px 10px;border-radius:var(--radius-full);font-size:11px;font-weight:600;}
-        .badge-success{background:rgba(52,199,89,.12);color:var(--green);}
-        .badge-warning{background:rgba(255,149,0,.12);color:var(--orange);}
-        .badge-danger{background:rgba(255,59,48,.12);color:var(--red);}
-        .badge-blue{background:rgba(0,113,227,.1);color:var(--blue);}
         .flex-row{display:flex;align-items:center;gap:8px;}
+
+        [data-theme="dark"] .kpi-card{background:var(--white);}
+        [data-theme="dark"] .kpi-value{color:var(--black);}
+        [data-theme="dark"] .chart-card{background:var(--white);}
+        [data-theme="dark"] .stock-dialog{background:var(--white);}
+        [data-theme="dark"] .refresh-btn{background:var(--white);color:var(--black);}
     </style>
 </head>
 <body>
     <div class="page-container">
         <div th:replace="admin/commons::sidebar"></div>
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
             <header class="admin-header">
                 <h1>📊 数据概览</h1>
-                <span style="color:var(--light);font-size:13px;">实时统计</span>
+                <div class="refresh-bar">
+                    <span class="countdown" id="countdown">30s 后刷新</span>
+                    <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
+                        <span class="refresh-icon">🔄</span> 刷新
+                    </button>
+                </div>
             </header>
 
-            <!-- 核心指标 -->
-            <div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div><h3>用户总数</h3>
-                    <div class="stat-value" th:text="${userCount}">0</div>
+            <!-- ── 8 KPI 卡片 ── -->
+            <div class="stats-grid" id="kpiGrid">
+                <div class="kpi-card kpi-gold">
+                    <div class="kpi-icon">💰</div><div class="kpi-label">总营收</div>
+                    <div class="kpi-value" id="kpi-totalRevenue">--</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🎂</div><h3>商品总数</h3>
-                    <div class="stat-value" th:text="${goodsCount}">0</div>
+                <div class="kpi-card kpi-caramel">
+                    <div class="kpi-icon">📅</div><div class="kpi-label">今日营收</div>
+                    <div class="kpi-value" id="kpi-todayRevenue">--</div>
+                    <div class="kpi-sub">今日订单 <span id="kpi-todayOrders">--</span> 单</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">📦</div><h3>订单总数</h3>
-                    <div class="stat-value" th:text="${orderCount}">0</div>
+                <div class="kpi-card kpi-chocolate">
+                    <div class="kpi-icon">📋</div><div class="kpi-label">总订单数</div>
+                    <div class="kpi-value" id="kpi-totalOrders">--</div>
+                    <div class="kpi-sub">已完成 <span id="kpi-completedOrders">--</span></div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">🏷️</div><h3>分类总数</h3>
-                    <div class="stat-value" th:text="${typeCount}">0</div>
+                <div class="kpi-card kpi-rose">
+                    <div class="kpi-icon">⏳</div><div class="kpi-label">待处理订单</div>
+                    <div class="kpi-value" id="kpi-pendingOrders">--</div>
                 </div>
-                <div class="stat-card" th:classappend="${lowStockCount > 0 ? 'warn-card' : ''}">
-                    <div class="stat-icon" th:text="${lowStockCount > 0 ? '⚠️' : '✅'}"></div>
-                    <h3 th:text="${lowStockCount > 0 ? '库存预警' : '库存充足'}"></h3>
-                    <div class="stat-value" th:style="${lowStockCount > 0 ? 'color:var(--orange)' : 'color:var(--green)'}" th:text="${lowStockCount}">0</div>
+                <div class="kpi-card kpi-gold">
+                    <div class="kpi-icon">👥</div><div class="kpi-label">用户总数</div>
+                    <div class="kpi-value" id="kpi-totalUsers">--</div>
+                    <div class="kpi-sub">骑手 <span id="kpi-riderCount">--</span> 人</div>
+                </div>
+                <div class="kpi-card kpi-sage">
+                    <div class="kpi-icon">🎂</div><div class="kpi-label">商品总数</div>
+                    <div class="kpi-value" id="kpi-totalGoods">--</div>
+                    <div class="kpi-sub">总库存 <span id="kpi-totalStock">--</span></div>
+                </div>
+                <div class="kpi-card kpi-blush">
+                    <div class="kpi-icon">🛵</div><div class="kpi-label">骑手数量</div>
+                    <div class="kpi-value" id="kpi-riderCount2">--</div>
+                </div>
+                <div class="kpi-card kpi-caramel">
+                    <div class="kpi-icon">📊</div><div class="kpi-label">平均客单价</div>
+                    <div class="kpi-value" id="kpi-avgOrderValue">--</div>
                 </div>
             </div>
 
-            <!-- ECharts 图表 -->
+            <!-- ── 6 ECharts 图表 ── -->
             <div class="chart-row">
                 <div class="chart-card">
-                    <h3>📦 订单状态分布</h3>
-                    <div class="chart-box" id="statusChart"></div>
+                    <h3>📈 月度销售趋势</h3>
+                    <div class="chart-box" id="chart-sales"></div>
                 </div>
                 <div class="chart-card">
-                    <h3>🔥 分类销量排行</h3>
-                    <div class="chart-box" id="salesChart"></div>
+                    <h3>🍩 订单状态分布</h3>
+                    <div class="chart-box" id="chart-order-status"></div>
                 </div>
             </div>
-
-            <!-- 最近订单 + 快捷操作 -->
+            <div class="chart-row">
+                <div class="chart-card chart-full">
+                    <h3>🔥 热销商品 TOP10</h3>
+                    <div class="chart-box" id="chart-top-goods" style="height:380px;"></div>
+                </div>
+            </div>
             <div class="chart-row">
                 <div class="chart-card">
-                    <div class="section-title">📋 最近订单</div>
+                    <h3>📅 近7天订单趋势</h3>
+                    <div class="chart-box" id="chart-weekly-orders"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>💵 近30天营收趋势</h3>
+                    <div class="chart-box" id="chart-revenue-30d"></div>
+                </div>
+            </div>
+            <div class="chart-row">
+                <div class="chart-card">
+                    <h3>🌹 类别销售额分布</h3>
+                    <div class="chart-box" id="chart-category-sales"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>📋 最近订单</h3>
                     <div th:if="${recentOrders == null || recentOrders.isEmpty()}" class="empty-state" style="padding:30px;"><p>暂无订单</p></div>
-                    <ul class="quick-list" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
+                    <ul class="quick-list" id="recentOrderList" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
                         <li th:each="order,stat : ${recentOrders}">
                             <div class="flex-row">
                                 <span style="font-weight:700;color:var(--black);min-width:24px;" th:text="${stat.index + 1} + '.'"></span>
@@ -95,75 +243,271 @@
                             </div>
                         </li>
                     </ul>
-                    <div style="text-align:center;margin-top:10px;" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
-                        <a th:href="@{/admin/orders}" class="btn btn-sm btn-secondary">查看全部 →</a>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="section-title">⚡ 快捷操作</div>
-                    <ul class="quick-list">
-                        <li><span>👥 用户管理</span><a th:href="@{/admin/users}" class="btn btn-sm btn-secondary">进入</a></li>
-                        <li><span>🎂 商品管理</span><a th:href="@{/admin/goods}" class="btn btn-sm btn-secondary">进入</a></li>
-                        <li><span>📦 订单管理</span><a th:href="@{/admin/orders}" class="btn btn-sm btn-secondary">进入</a></li>
-                        <li><span>🏷️ 分类管理</span><a th:href="@{/admin/types}" class="btn btn-sm btn-secondary">进入</a></li>
-                        <li th:if="${lowStockCount > 0}" style="background:rgba(255,149,0,.04);">
-                            <span>⚠️ 库存预警 <span class="badge badge-warning" th:text="${lowStockCount}">0</span></span>
-                            <a th:href="@{/admin/goods}" class="btn btn-sm btn-warning">处理</a>
-                        </li>
-                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="chart-data-status" style="display:none" th:utext="${statusDistributionJson}">[]</div>
-    <div id="chart-data-names" style="display:none" th:utext="${typeNamesJson}">[]</div>
-    <div id="chart-data-sales" style="display:none" th:utext="${typeSalesJson}">[]</div>
-    <script>
-        // 订单状态分布 - 饼图
-        (function(){
-            var chart = echarts.init(document.getElementById('statusChart'));
-            var data = JSON.parse(document.getElementById('chart-data-status').textContent);
-            chart.setOption({
-                tooltip: { trigger: 'item', formatter: '{b}: {c} 单 ({d}%)' },
-                legend: { bottom: 0, textStyle: { fontSize: 12 } },
-                series: [{
-                    type: 'pie', radius: ['45%', '72%'], center: ['50%', '45%'],
-                    emphasis: { label: { fontSize: 16, fontWeight: 'bold' } },
-                    label: { show: true, formatter: '{b}\n{d}%' },
-                    data: data,
-                    itemStyle: {
-                        color: function(params) {
-                            var colors = ['#ff9500','#0071e3','#34c759','#5856d6','#ff3b30'];
-                            return colors[params.dataIndex % colors.length];
-                        }
-                    }
-                }]
-            });
-            window.addEventListener('resize', function(){ chart.resize(); });
-        })();
+    <!-- 库存预警弹窗 -->
+    <div class="stock-overlay" id="stockOverlay">
+        <div class="stock-dialog">
+            <div class="stock-dialog-header">
+                <h3>⚠️ 库存预警</h3>
+                <button class="stock-dialog-close" onclick="closeStockDialog()">×</button>
+            </div>
+            <div class="stock-dialog-body" id="stockDialogBody">
+                <p style="text-align:center;color:var(--light);">加载中...</p>
+            </div>
+            <div class="stock-dialog-footer">
+                <a href="/admin/goods" class="btn btn-warning" style="text-decoration:none;">前往处理</a>
+            </div>
+        </div>
+    </div>
 
-        // 分类销量 - 柱状图
-        (function(){
-            var chart = echarts.init(document.getElementById('salesChart'));
-            var names = JSON.parse(document.getElementById('chart-data-names').textContent);
-            var sales = JSON.parse(document.getElementById('chart-data-sales').textContent);
-            chart.setOption({
-                tooltip: { trigger: 'axis' },
-                grid: { left: '3%', right: '8%', bottom: '8%', top: '8%', containLabel: true },
-                xAxis: { type: 'category', data: names, axisLabel: { rotate: 30, fontSize: 11 } },
-                yAxis: { type: 'value', name: '销量(件)' },
-                series: [{
-                    type: 'bar', data: sales,
-                    itemStyle: {
-                        borderRadius: [6,6,0,0],
-                        color: new echarts.graphic.LinearGradient(0,0,0,1,[
-                            {offset:0,color:'#0071e3'},{offset:1,color:'#5ac8fa'}
-                        ])
+    <script>
+        // ═══════════════ 全局状态 ═══════════════
+        var charts = {};
+        var refreshSeconds = 30;
+        var countdownTimer = null;
+        var lastKpiValues = {};
+
+        // ═══════════════ 数字滚动动画 ═══════════════
+        function animateNumber(el, target, decimals) {
+            decimals = decimals || 0;
+            var current = parseFloat(el.textContent.replace(/[^0-9.-]/g, '')) || 0;
+            if (current === target) { el.textContent = formatNum(target, decimals); return; }
+            var start = performance.now();
+            var duration = 800;
+            function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+            function step(now) {
+                var elapsed = now - start;
+                var progress = Math.min(elapsed / duration, 1);
+                var val = current + (target - current) * easeOutCubic(progress);
+                el.textContent = formatNum(val, decimals);
+                if (progress < 1) requestAnimationFrame(step);
+                else el.textContent = formatNum(target, decimals);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function formatNum(num, decimals) {
+            if (decimals > 0) return num.toFixed(decimals).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (Number.isInteger(num)) return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return num.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // ═══════════════ KPI 更新 ═══════════════
+        function updateKPI(id, value, decimals, prefix) {
+            prefix = prefix || '¥';
+            var el = document.getElementById('kpi-' + id);
+            if (!el) return;
+            var isCurrency = (id === 'totalRevenue' || id === 'todayRevenue' || id === 'avgOrderValue');
+            var displayVal = isCurrency ? value : Math.round(value);
+            if (isCurrency) {
+                animateNumber(el, value, 2);
+            } else {
+                animateNumber(el, displayVal, 0);
+            }
+            lastKpiValues[id] = value;
+        }
+
+        // ═══════════════ 图表初始化 ═══════════════
+        function initCharts() {
+            // 月度销售趋势 — 柱状图+折线图双轴
+            charts.sales = echarts.init(document.getElementById('chart-sales'));
+            // 订单状态分布 — 环形饼图
+            charts.status = echarts.init(document.getElementById('chart-order-status'));
+            // 热销商品 TOP10 — 横向柱状图
+            charts.topGoods = echarts.init(document.getElementById('chart-top-goods'));
+            // 近7天订单趋势 — 折线+面积
+            charts.weekly = echarts.init(document.getElementById('chart-weekly-orders'));
+            // 近30天营收 — 折线+面积+缩放
+            charts.revenue30d = echarts.init(document.getElementById('chart-revenue-30d'));
+            // 类别销售 — 玫瑰图
+            charts.category = echarts.init(document.getElementById('chart-category-sales'));
+        }
+
+        function updateCharts(data) {
+            // 1) 月度销售趋势 (H2 returns uppercase keys)
+            var months = [], orders = [], revenues = [];
+            (data.monthlySales || []).forEach(function(r){
+                months.push(r.MONTH || r.month); orders.push(r.ORDERS || r.orders); revenues.push(r.REVENUE || r.revenue);
+            });
+            charts.sales.setOption({
+                tooltip:{trigger:'axis'},
+                legend:{data:['订单数','销售额'],bottom:0,textStyle:{fontSize:11}},
+                grid:{left:'3%',right:'4%',bottom:'14%',top:'8%',containLabel:true},
+                xAxis:{type:'category',data:months,axisLabel:{rotate:30,fontSize:10}},
+                yAxis:[
+                    {type:'value',name:'订单数'},
+                    {type:'value',name:'销售额(¥)'}
+                ],
+                series:[
+                    {name:'订单数',type:'bar',data:orders,itemStyle:{borderRadius:[5,5,0,0],color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#a06b35'},{offset:1,color:'#e8c98b'}])}},
+                    {name:'销售额',type:'line',yAxisIndex:1,data:revenues,smooth:true,lineStyle:{color:'#c8965c'},itemStyle:{color:'#c8965c'},symbol:'circle',symbolSize:6}
+                ]
+            });
+
+            // 2) 订单状态分布
+            var statusData = [];
+            var statusNames = ['','待支付','待配送','待取货','配送中','已送达','已取消'];
+            (data.orderStatusDist || []).forEach(function(r){
+                var s = parseInt(r.STATUS||r.status||0), c = parseInt(r.CNT||r.cnt||0);
+                if(s>=1 && s<=6) statusData.push({value:c, name:statusNames[s]});
+            });
+            charts.status.setOption({
+                tooltip:{trigger:'item',formatter:'{b}: {c} 单 ({d}%)'},
+                series:[{type:'pie',radius:['45%','75%'],center:['50%','45%'],
+                    emphasis:{label:{fontSize:14,fontWeight:'bold'}},
+                    label:{show:true,formatter:'{b}\n{d}%'},
+                    data:statusData,
+                    itemStyle:{color:function(p){return ['#c8965c','#8b5e3c','#b6c5a8','#d4a09a','#a06b35','#e8c98b'][p.dataIndex%6];}}
+                }]
+            });
+
+            // 3) 热销商品 TOP10
+            var topNames=[], topSales=[];
+            (data.topGoods||[]).forEach(function(r){topNames.push(r.NAME||r.name);topSales.push(r.SALES||r.sales);});
+            charts.topGoods.setOption({
+                tooltip:{trigger:'axis'},
+                grid:{left:'3%',right:'8%',bottom:'3%',top:'3%',containLabel:true},
+                xAxis:{type:'value',name:'销量'},
+                yAxis:{type:'category',data:topNames.reverse(),inverse:true,axisLabel:{fontSize:11}},
+                series:[{type:'bar',data:topSales.reverse(),
+                    itemStyle:{borderRadius:[0,6,6,0],
+                        color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#8b5e3c'},{offset:1,color:'#e8c98b'}])
                     }
                 }]
             });
-            window.addEventListener('resize', function(){ chart.resize(); });
+
+            // 4) 近7天订单趋势
+            var wDays=[], wCnt=[];
+            (data.weeklyOrders||[]).forEach(function(r){wDays.push(r.DAY||r.day);wCnt.push(r.CNT||r.cnt);});
+            var wAvg = wCnt.length ? (wCnt.reduce(function(a,b){return a+parseInt(b||0);},0)/wCnt.length).toFixed(1) : 0;
+            charts.weekly.setOption({
+                tooltip:{trigger:'axis'},
+                grid:{left:'3%',right:'4%',bottom:'8%',top:'8%',containLabel:true},
+                xAxis:{type:'category',data:wDays,axisLabel:{rotate:20,fontSize:10}},
+                yAxis:{type:'value',name:'订单数'},
+                series:[{
+                    type:'line',data:wCnt,smooth:true,
+                    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(200,150,92,.25)'},{offset:1,color:'rgba(200,150,92,0)'}])},
+                    lineStyle:{color:'#c8965c',width:2},
+                    itemStyle:{color:'#c8965c'},
+                    markLine:{silent:true,data:[{type:'average',name:'均值'}],label:{formatter:'均值 {c}'}}
+                }]
+            });
+
+            // 5) 近30天营收
+            var rDays=[], rRev=[];
+            (data.revenueLast30Days||[]).forEach(function(r){rDays.push(r.DAY||r.day);rRev.push(r.REVENUE||r.revenue);});
+            charts.revenue30d.setOption({
+                tooltip:{trigger:'axis'},
+                grid:{left:'3%',right:'8%',bottom:'14%',top:'8%',containLabel:true},
+                xAxis:{type:'category',data:rDays,axisLabel:{rotate:30,fontSize:9}},
+                yAxis:{type:'value',name:'营收(¥)'},
+                dataZoom:[{type:'inside',start:0,end:100}],
+                series:[{
+                    type:'line',data:rRev,smooth:true,
+                    areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(160,107,53,.25)'},{offset:1,color:'rgba(160,107,53,0)'}])},
+                    lineStyle:{color:'#a06b35',width:2},
+                    itemStyle:{color:'#a06b35'}
+                }]
+            });
+
+            // 6) 类别销售玫瑰图
+            var catData=[];
+            (data.categorySales||[]).forEach(function(r){catData.push({value:r.SALES||r.sales,name:r.TYPE_NAME||r.type_name});});
+            charts.category.setOption({
+                tooltip:{trigger:'item',formatter:'{b}: {c} 件'},
+                series:[{type:'pie',roseType:'area',radius:['20%','70%'],center:['50%','50%'],
+                    data:catData,
+                    label:{fontSize:10},
+                    itemStyle:{borderRadius:4}
+                }]
+            });
+        }
+
+        // ═══════════════ 数据加载 ═══════════════
+        function refreshData() {
+            var btn = document.getElementById('refreshBtn');
+            btn.classList.add('spinning');
+            fetch('/admin/statistics/all')
+                .then(function(r){return r.json();})
+                .then(function(data){
+                    // KPI
+                    updateKPI('totalRevenue', data.totalRevenue, 2);
+                    updateKPI('todayRevenue', data.todayRevenue, 2);
+                    updateKPI('todayOrders', data.todayOrders, 0);
+                    updateKPI('totalOrders', data.totalOrders, 0);
+                    updateKPI('completedOrders', data.completedOrders, 0);
+                    updateKPI('pendingOrders', data.pendingOrders, 0);
+                    updateKPI('totalUsers', data.totalUsers, 0);
+                    updateKPI('riderCount', data.riderCount, 0);
+                    updateKPI('totalGoods', data.totalGoods, 0);
+                    updateKPI('totalStock', data.totalStock, 0);
+                    updateKPI('riderCount2', data.riderCount, 0);
+                    updateKPI('avgOrderValue', data.avgOrderValue, 2);
+                    // Charts
+                    updateCharts(data);
+                    // 重置倒计时
+                    refreshSeconds = 30;
+                    updateCountdown();
+                    // 库存预警
+                    if (data.lowStockCount > 0) checkLowStock();
+                })
+                .catch(function(e){console.error('数据加载失败:',e);})
+                .finally(function(){setTimeout(function(){btn.classList.remove('spinning');},600);});
+        }
+
+        function checkLowStock() {
+            fetch('/admin/statistics/lowStock')
+                .then(function(r){return r.json();})
+                .then(function(data){
+                    if (!data.goods || data.goods.length === 0) return;
+                    var html = '';
+                    data.goods.forEach(function(g){
+                        var cls = g.stock <= 0 ? 'si-out' : 'si-low';
+                        var label = g.stock <= 0 ? '断货' : ('仅剩 ' + g.stock);
+                        html += '<div class="stock-item"><span class="si-name">'+g.name+'</span><span class="si-stock '+cls+'">'+label+'</span></div>';
+                    });
+                    document.getElementById('stockDialogBody').innerHTML = html;
+                    document.getElementById('stockOverlay').classList.add('show');
+                });
+        }
+
+        function closeStockDialog() {
+            document.getElementById('stockOverlay').classList.remove('show');
+        }
+
+        // ═══════════════ 倒计时 ═══════════════
+        function updateCountdown() {
+            document.getElementById('countdown').textContent = refreshSeconds + 's 后刷新';
+        }
+        function startCountdown() {
+            if (countdownTimer) clearInterval(countdownTimer);
+            updateCountdown();
+            countdownTimer = setInterval(function(){
+                refreshSeconds--;
+                updateCountdown();
+                if (refreshSeconds <= 0) { refreshData(); }
+            }, 1000);
+        }
+
+        // ═══════════════ 窗口缩放 ═══════════════
+        window.addEventListener('resize', function(){
+            for (var k in charts) { if (charts[k] && charts[k].resize) charts[k].resize(); }
+        });
+
+        // ═══════════════ 启动 ═══════════════
+        (function(){
+            initCharts();
+            refreshData();
+            startCountdown();
+            // 点击遮罩关闭弹窗
+            document.getElementById('stockOverlay').addEventListener('click', function(e){
+                if (e.target === this) closeStockDialog();
+            });
         })();
     </script>
 </body>

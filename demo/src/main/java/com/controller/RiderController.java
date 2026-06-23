@@ -50,7 +50,7 @@ public class RiderController {
             return new ModelAndView("redirect:/user/login?role=rider&riderError="
                 + java.net.URLEncoder.encode("骑手账号或密码错误", "UTF-8"));
         } catch (Exception e) {
-            return new ModelAndView("redirect:/user/login?role=rider&riderError=登录失败");
+            return new ModelAndView("redirect:/user/login?role=rider&riderError=login_failed");
         }
     }
 

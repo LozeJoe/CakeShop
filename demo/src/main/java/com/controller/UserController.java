@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import java.net.URLEncoder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -220,7 +221,7 @@ public class UserController {
             userService.register(userName, userPassword, name, phone.trim(), address, email.trim(), "0");
 
             // 重定向到登录页面，并显示成功消息
-            modelAndView.setViewName("redirect:/user/login?success=注册成功，请登录");
+            modelAndView.setViewName("redirect:/user/login?success=" + URLEncoder.encode("注册成功，请登录", "UTF-8"));
         } catch (Exception e) {
             e.printStackTrace();
             modelAndView.addObject("error", e.getMessage());

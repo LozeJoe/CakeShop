@@ -3,6 +3,9 @@
 -- 由 MySQL docker-entrypoint-initdb.d 自动执行
 -- ==============================================
 
+-- 强制客户端字符集为 UTF-8（防止 latin1 写入导致中文乱码）
+SET NAMES utf8mb4;
+
 -- 禁用外键检查
 SET FOREIGN_KEY_CHECKS = 0;
 

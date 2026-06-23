@@ -1,0 +1,19 @@
+# ── 生产环境配置：MySQL 数据库（Docker Compose 部署）──
+spring:
+  messages:
+    basename: messages
+    encoding: UTF-8
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql:3306/cookieshop?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    initialization-mode: never
+  thymeleaf:
+    cache: true
+    encoding: UTF-8
+    mode: HTML
+
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl

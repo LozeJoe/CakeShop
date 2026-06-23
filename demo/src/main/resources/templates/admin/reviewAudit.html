@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>评论审核 — CakeShop</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+    <div class="page-container">
+        <div th:replace="admin/commons::sidebar"></div>
+        <div class="main-content">
+            <header th:replace="admin/commons::header"></header>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th th:text="#{goods.id}">ID</th><th th:text="#{review.goodsId}">商品ID</th><th th:text="#{review.user}">用户</th><th th:text="#{review.rating}">评分</th><th th:text="#{review.content}">内容</th><th th:text="#{log.time}">时间</th><th th:text="#{user.actions}">操作</th></tr></thead>
+                    <tbody>
+                        <tr th:each="r : ${pendingReviews}">
+                            <td th:text="${r.id}"></td>
+                            <td th:text="${r.goodsId}"></td>
+                            <td th:text="${r.userName}"></td>
+                            <td><span th:text="${r.rating} + '⭐'"></span></td>
+                            <td th:text="${#strings.abbreviate(r.content, 30)}"></td>
+                            <td th:text="${#strings.substring(r.createTime, 0, 16)}"></td>
+                            <td>
+                                <a th:href="@{/admin/reviewApprove(id=${r.id})}" class="btn btn-sm btn-success" th:text="#{review.approve}">通过</a>
+                                <a th:href="@{/admin/reviewReject(id=${r.id})}" class="btn btn-sm btn-danger" th:onclick="|return confirm('#{review.confirmReject}')|" th:text="#{review.reject}">驳回</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${pendingReviews == null || pendingReviews.isEmpty()}">
+                            <td colspan="7" style="text-align:center;padding:40px;color:var(--gray);" th:text="#{review.empty}">暂无待审核评论</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

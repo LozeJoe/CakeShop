@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.net.URLEncoder;
 import java.util.List;
 
 @RequestMapping("/goods")
@@ -182,7 +183,7 @@ public class GoodsController {
                     int newTotalAmount = currentCartAmount + amount;
                     if (newTotalAmount > goods.getStock()) {
                         modelAndView.addObject("msg", "库存不足！当前库存: " + goods.getStock());
-                        modelAndView.setViewName("redirect:/goods/detail?id=" + goodId + "&msg=库存不足");
+                        modelAndView.setViewName("redirect:/goods/detail?id=" + goodId + "&msg=" + URLEncoder.encode("库存不足", "UTF-8"));
                         return modelAndView;
                     }
                     
@@ -283,7 +284,7 @@ public class GoodsController {
                 favoriteService.addFavorite(favorite);
             }
 
-            modelAndView.setViewName("redirect:/goods/detail?id=" + goodsId + "&msg=已收藏");
+            modelAndView.setViewName("redirect:/goods/detail?id=" + goodsId + "&msg=" + URLEncoder.encode("已收藏", "UTF-8"));
         } catch (Exception e) {
             e.printStackTrace();
             modelAndView.addObject("error", e.getMessage());
@@ -305,7 +306,7 @@ public class GoodsController {
             }
 
             favoriteService.removeFavorite(user.getId(), goodsId);
-            modelAndView.setViewName("redirect:/goods/detail?id=" + goodsId + "&msg=已取消收藏");
+            modelAndView.setViewName("redirect:/goods/detail?id=" + goodsId + "&msg=" + URLEncoder.encode("已取消收藏", "UTF-8"));
         } catch (Exception e) {
             e.printStackTrace();
             modelAndView.addObject("error", e.getMessage());

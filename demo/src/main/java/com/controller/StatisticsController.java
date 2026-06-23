@@ -54,6 +54,8 @@ public class StatisticsController {
         result.put("weeklyOrders",         orderService.getWeeklyOrders(weekStart));
         result.put("revenueLast30Days",    orderService.getRevenueLast30Days(month30Start));
         result.put("categorySales",        orderService.getCategorySales());
+        result.put("overduePaymentCount",   orderService.getOverduePaymentCount());
+        result.put("overdueDeliveryCount",  orderService.getOverdueDeliveryCount());
 
         return result;
     }

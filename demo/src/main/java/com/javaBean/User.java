@@ -21,6 +21,7 @@ public class User {
     String email;
     
     String isadmin;
+    String adminRole;  // super_admin=全权限, admin=仅商品+订单
     
     @Size(max = 50, message = "姓名不超过 50 个字符")
     String name;

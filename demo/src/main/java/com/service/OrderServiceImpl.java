@@ -313,4 +313,48 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public java.util.List<java.util.Map<String, Object>> getTopGoods() { return orderMapper.getTopGoods(); }
+
+    @Override
+    public int getOverduePaymentCount() {
+        return (int) orderMapper.getOverdueCandidates().stream()
+            .filter(o -> o.getStatus() == 1 && isOlderThan(o.getDatetime(), 30))
+            .count();
+    }
+
+    @Override
+    public int getOverdueDeliveryCount() {
+        return (int) orderMapper.getOverdueCandidates().stream()
+            .filter(o -> (o.getStatus() == 3 || o.getStatus() == 4) && isDeliveryOverdue(o))
+            .count();
+    }
+
+    @Override
+    public java.util.Set<String> getOverdueOrderIds() {
+        java.util.Set<String> ids = new java.util.HashSet<>();
+        for (Order o : orderMapper.getOverdueCandidates()) {
+            if ((o.getStatus() == 1 && isOlderThan(o.getDatetime(), 30)) ||
+                ((o.getStatus() == 3 || o.getStatus() == 4) && isDeliveryOverdue(o))) {
+                ids.add(o.getId());
+            }
+        }
+        return ids;
+    }
+
+    private boolean isOlderThan(String datetime, int minutes) {
+        if (datetime == null) return false;
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            java.util.Date d = sdf.parse(datetime);
+            return System.currentTimeMillis() - d.getTime() > minutes * 60_000L;
+        } catch (Exception e) { return false; }
+    }
+
+    private boolean isDeliveryOverdue(Order o) {
+        if (o.getDeliveryTime() == null) return false;
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            java.util.Date d = sdf.parse(o.getDeliveryTime());
+            return System.currentTimeMillis() > d.getTime();
+        } catch (Exception e) { return false; }
+    }
 }

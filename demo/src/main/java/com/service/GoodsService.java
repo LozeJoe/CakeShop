@@ -25,4 +25,6 @@ public interface GoodsService {
     int getLowStockCount(int threshold);
     int getTotalStock();
     List<Goods> getLowStockGoods(int threshold);
+    void updateGoodsStatus(int id, int status);
+    PageResult<Goods> getGoodsByPageAdmin(int pageNum, int pageSize);
 }

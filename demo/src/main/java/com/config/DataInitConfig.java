@@ -35,6 +35,8 @@ public class DataInitConfig {
         migrateOrderTable();
         migrateUserTable();
         migrateMessageTable();
+        migrateReviewTable();
+        migrateGoodsTable();
         initUsers();
         initTypes();
         initGoods();
@@ -71,7 +73,8 @@ public class DataInitConfig {
             "ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `level` int(1) DEFAULT 1 AFTER `avatar`",
             "ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `total_orders` int(11) DEFAULT 0 AFTER `level`",
             "ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `total_income` decimal(10,2) DEFAULT 0.00 AFTER `total_orders`",
-            "ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `balance` decimal(10,2) DEFAULT 0.00 AFTER `total_income`"
+            "ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `balance` decimal(10,2) DEFAULT 0.00 AFTER `total_income`",
+            "ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `admin_role` varchar(20) DEFAULT 'admin' AFTER `balance`"
         };
         try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
             for (String sql : alterStatements) {
@@ -83,6 +86,20 @@ public class DataInitConfig {
         } catch (Exception e) {
             System.out.println("User table migration skipped: " + e.getMessage());
         }
+    }
+
+    /** Add status column to review table if it doesn't exist. */
+    private void migrateReviewTable() {
+        try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER TABLE review ADD COLUMN IF NOT EXISTS status int(1) DEFAULT 1");
+        } catch (Exception ignored) {}
+    }
+
+    /** Add status column to goods table if it doesn't exist. */
+    private void migrateGoodsTable() {
+        try (Connection conn = dataSource.getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER TABLE goods ADD COLUMN IF NOT EXISTS status int(1) DEFAULT 1");
+        } catch (Exception ignored) {}
     }
 
     /** Create rider_message table if not exists (MySQL + H2 compatible). */
@@ -121,10 +138,16 @@ public class DataInitConfig {
             rs.close();
 
             if (userCount == 0) {
-                // 首次初始化 — 全部用 BCrypt
-                userMapper.register("admin", encoder.encode("admin123"), "管理员", "13800138000", "北京市朝阳区", "admin@cakeshop.com", "1");
-                userMapper.register("vili", encoder.encode("Vili1234!"), "vili", "1344444444", "上海市浦东新区", "vili@cakeshop.com", "0");
-                userMapper.register("rider1", encoder.encode("Rider1234!"), "张三", "13900139000", "配送站", "rider1@cakeshop.com", "2");
+                // 首次初始化 — 直接用 SQL 确保 admin_role 写入
+                String insertAdmin = "INSERT INTO user (username, password, name, phone, address, email, isadmin, admin_role) VALUES " +
+                    "('admin', '" + encoder.encode("admin123") + "', '管理员', '13800138000', '北京市朝阳区', 'admin@cakeshop.com', '1', 'super_admin')";
+                stmt.execute(insertAdmin);
+                String insertUser = "INSERT INTO user (username, password, name, phone, address, email, isadmin) VALUES " +
+                    "('vili', '" + encoder.encode("Vili1234!") + "', 'vili', '1344444444', '上海市浦东新区', 'vili@cakeshop.com', '0')";
+                stmt.execute(insertUser);
+                String insertRider = "INSERT INTO user (username, password, name, phone, address, email, isadmin) VALUES " +
+                    "('rider1', '" + encoder.encode("Rider1234!") + "', '张三', '13900139000', '配送站', 'rider1@cakeshop.com', '2')";
+                stmt.execute(insertRider);
                 System.out.println("Users initialized with BCrypt passwords");
                 seeded = true;
             }
@@ -152,6 +175,11 @@ public class DataInitConfig {
                     }
                 } catch (Exception ignored) {}
 
+                // 确保 admin 为超级管理员
+                try (java.sql.Statement st = conn.createStatement()) {
+                    st.executeUpdate("UPDATE user SET admin_role = 'super_admin' WHERE username = 'admin' AND (admin_role IS NULL OR admin_role <> 'super_admin')");
+                } catch (Exception ignored) {}
+
                 // 2b) 重置非 BCrypt 密码的种子用户
                 try (java.sql.PreparedStatement ps = conn.prepareStatement(
                          "UPDATE user SET password = ?, name = ?, phone = ?, address = ?, email = ?, isadmin = ? WHERE username = ? AND (password NOT LIKE '$2a$%' OR password IS NULL)")) {
@@ -175,7 +203,7 @@ public class DataInitConfig {
                         rs.next();
                         if (rs.getInt(1) == 0) {
                             try (java.sql.PreparedStatement ps = conn.prepareStatement(
-                                     "INSERT INTO user (username, password, name, phone, address, email, isadmin) VALUES (?, ?, ?, ?, ?, ?, ?)")) {
+                                     "INSERT INTO user (username, password, name, phone, address, email, isadmin, admin_role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")) {
                                 ps.setString(1, row[0]);
                                 ps.setString(2, encoder.encode(row[1]));
                                 ps.setString(3, row[2]);
@@ -183,6 +211,7 @@ public class DataInitConfig {
                                 ps.setString(5, row[4]);
                                 ps.setString(6, row[5]);
                                 ps.setString(7, row[6]);
+                                ps.setString(8, "admin".equals(row[0]) ? "super_admin" : null);
                                 ps.executeUpdate();
                                 System.out.println("Inserted missing seed user: " + row[0]);
                             }
@@ -236,7 +265,8 @@ public class DataInitConfig {
     }
 
     private void initGoods() {
-        List<Goods> goods = goodsMapper.getAllGoods();
+        // 用不过滤 status 的查询，确保能正确检测到已存在的商品
+        List<Goods> goods = goodsMapper.getGoodsByPageAdmin(0, 1);
         if (goods == null || goods.isEmpty()) {
             Goods[] goodsArray = {
                 createGoods("草莓冰淇淋", "/picture/9-1.jpg", "/picture/9-2.jpg", "/picture/9-3.jpg", 299.00, "甜郁草莓配合冰淇淋的丝滑口感", 100, 156, 1),
@@ -265,6 +295,7 @@ public class DataInitConfig {
         goods.setIntro(intro);
         goods.setStock(stock);
         goods.setSales(sales);
+        goods.setStatus(1);
         goods.setTypeId(typeId);
         return goods;
     }

@@ -13,7 +13,7 @@
             <header th:replace="admin/commons::header"></header>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>ID</th><th>封面</th><th>名称</th><th>分类</th><th>价格</th><th>库存</th><th>简介</th><th>操作</th></tr></thead>
+                    <thead><tr><th th:text="#{goods.id}">ID</th><th th:text="#{goods.cover}">封面</th><th th:text="#{goods.name}">名称</th><th th:text="#{goods.type}">分类</th><th th:text="#{goods.price}">价格</th><th th:text="#{goods.stock}">库存</th><th th:text="#{goods.status}">状态</th><th th:text="#{user.actions}">操作</th></tr></thead>
                     <tbody>
                         <tr th:each="goods : ${goodsList}">
                             <td th:text="${goods.id}"></td>
@@ -22,24 +22,29 @@
                             <td th:text="${goods.typeName != null ? goods.typeName : '—'}"></td>
                             <td>&yen;[[${#numbers.formatDecimal(goods.price, 0, 2)}]]</td>
                             <td><span th:class="${goods.stock < 10 ? 'status status-danger' : (goods.stock < 50 ? 'status status-warning' : '')}" th:text="${goods.stock}"></span></td>
-                            <td th:text="${goods.intro != null ? #strings.abbreviate(goods.intro, 15) : ''}"></td>
                             <td>
-                                <a th:href="@{/admin/goodsEdit(id=${goods.id})}" class="btn btn-sm btn-warning">编辑</a>
-                                <a th:href="@{/admin/goodsDelete(id=${goods.id})}" class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</a>
+                                <span th:if="${goods.status == 1}" class="status status-success" th:text="#{goods.statusOn}">上架</span>
+                                <span th:unless="${goods.status == 1}" class="status status-danger" th:text="#{goods.statusOff}">下架</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/goodsEdit(id=${goods.id})}" class="btn btn-sm btn-warning" th:text="#{common.edit}">编辑</a>
+                                <a th:if="${goods.status == 0}" th:href="@{/admin/goodsOnShelf(id=${goods.id})}" class="btn btn-sm btn-success" th:text="#{goods.onShelf}">上架</a>
+                                <a th:if="${goods.status == 1}" th:href="@{/admin/goodsOffShelf(id=${goods.id})}" class="btn btn-sm btn-secondary" th:onclick="|return confirm('#{goods.confirmOffShelf}')|" th:text="#{goods.offShelf}">下架</a>
+                                <a th:href="@{/admin/goodsDelete(id=${goods.id})}" class="btn btn-sm btn-danger" th:onclick="|return confirm('#{goods.confirmDelete}')|" th:text="#{common.delete}">删除</a>
                             </td>
                         </tr>
                     </tbody>
                 </table>
                 <div class="pagination">
-                    <a th:href="@{/admin/goods(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
-                    <a th:href="@{/admin/goods(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+                    <a th:href="@{/admin/goods(page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}" th:text="#{common.pageHome}">首页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}" th:text="#{common.pageHome}">首页</span>
+                    <a th:href="@{/admin/goods(page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}" th:text="#{common.pagePrev}">上一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}" th:text="#{common.pagePrev}">上一页</span>
                     <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/admin/goods(page=${i})}" th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}" th:text="${i}"></a>
-                    <a th:href="@{/admin/goods(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
-                    <a th:href="@{/admin/goods(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+                    <a th:href="@{/admin/goods(page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}" th:text="#{common.pageNext}">下一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}" th:text="#{common.pageNext}">下一页</span>
+                    <a th:href="@{/admin/goods(page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}" th:text="#{common.pageLast}">末页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}" th:text="#{common.pageLast}">末页</span>
                 </div>
             </div>
         </div>

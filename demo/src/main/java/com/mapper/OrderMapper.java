@@ -172,4 +172,8 @@ public interface OrderMapper {
 
     @Select("select g.id, g.name, g.cover, g.sales from goods g order by g.sales desc limit 10")
     List<java.util.Map<String, Object>> getTopGoods();
+
+    // ===== 逾期提醒（兼容 H2 和 MySQL）=====
+    @Select("select * from `order` where status = 1 or (status in (3,4) and delivery_time IS NOT NULL) order by datetime desc")
+    List<Order> getOverdueCandidates();
 }

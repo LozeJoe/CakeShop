@@ -20,5 +20,6 @@ public class Review {
     String content;
     
     int rating; // 1-5 星
+    int status;  // 0=待审核 1=已通过
     String createTime;
 }

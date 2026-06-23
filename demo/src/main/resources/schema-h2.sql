@@ -32,6 +32,7 @@ CREATE TABLE `user` (
   `total_orders` int(11) DEFAULT 0,
   `total_income` decimal(10,2) DEFAULT 0.00,
   `balance` decimal(10,2) DEFAULT 0.00,
+  `admin_role` varchar(20) DEFAULT 'admin',
   PRIMARY KEY (`id`),
   UNIQUE KEY (`username`),
   UNIQUE KEY (`email`)
@@ -59,6 +60,7 @@ CREATE TABLE `goods` (
   `intro` text DEFAULT NULL,
   `stock` int(11) DEFAULT '0',
   `sales` int(11) DEFAULT '0',
+  `status` int(1) DEFAULT '1',
   `type_id` int(11) DEFAULT '0',
   `addtime` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
@@ -126,6 +128,7 @@ CREATE TABLE `review` (
   `user_name` varchar(50) DEFAULT NULL,
   `content` varchar(500) NOT NULL,
   `rating` int(1) DEFAULT '5',
+  `status` int(1) DEFAULT '1',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 );

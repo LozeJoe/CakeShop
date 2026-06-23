@@ -33,6 +33,13 @@ public class AdminInterceptor implements HandlerInterceptor {
             return false;
         }
 
+        // 将管理员角色写入 request，供视图和控制器使用
+        // 如果 adminRole 为空或未知，默认给 super_admin（兼容旧数据）
+        String role = user.getAdminRole();
+        if (role == null || role.isEmpty() || !("super_admin".equals(role) || "admin".equals(role))) {
+            role = "super_admin";  // 兜底：未知角色默认给最高权限
+        }
+        request.setAttribute("adminRole", role);
         return true;
     }
 }

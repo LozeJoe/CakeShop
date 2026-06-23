@@ -11,37 +11,37 @@ import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface GoodsMapper {
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1")
     public List<Goods> getAllGoods();
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id limit #{offset}, #{pageSize}")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 limit #{offset}, #{pageSize}")
     public List<Goods> getGoodsByPage(@Param("offset") int offset, @Param("pageSize") int pageSize);
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.type_id = #{typeId} or g.type_id in (select id from type where pid = #{typeId}) limit #{offset}, #{pageSize}")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 and (g.type_id = #{typeId} or g.type_id in (select id from type where pid = #{typeId})) limit #{offset}, #{pageSize}")
     public List<Goods> getGoodsByTypePage(@Param("typeId") int typeId, @Param("offset") int offset, @Param("pageSize") int pageSize);
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.name like concat('%', #{keyword}, '%') limit #{offset}, #{pageSize}")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 and g.name like concat('%', #{keyword}, '%') limit #{offset}, #{pageSize}")
     public List<Goods> searchGoodsPage(@Param("keyword") String keyword, @Param("offset") int offset, @Param("pageSize") int pageSize);
     
-    @Select("select * from goods where type_id = #{typeId} or type_id in (select id from type where pid = #{typeId})")
+    @Select("select * from goods where status = 1 and (type_id = #{typeId} or type_id in (select id from type where pid = #{typeId}))")
     public List<Goods> getGoodsByType(int typeId);
     
     @Select("select * from goods where id = #{id}")
     public Goods getGoodsById(int id);
     
-    @Select("select * from goods where name like concat('%', #{keyword}, '%')")
+    @Select("select * from goods where status = 1 and name like concat('%', #{keyword}, '%')")
     public List<Goods> searchGoods(String keyword);
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id order by g.addtime desc limit 8")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 order by g.addtime desc limit 8")
     public List<Goods> getNewGoods();
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id order by g.sales desc limit 8")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 order by g.sales desc limit 8")
     public List<Goods> getTopSellGoods();
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id order by g.sales desc limit #{offset}, #{pageSize}")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 order by g.sales desc limit #{offset}, #{pageSize}")
     public List<Goods> getTopSellGoodsPage(@Param("offset") int offset, @Param("pageSize") int pageSize);
     
-    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id order by g.addtime desc limit #{offset}, #{pageSize}")
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id where g.status = 1 order by g.addtime desc limit #{offset}, #{pageSize}")
     public List<Goods> getNewGoodsPage(@Param("offset") int offset, @Param("pageSize") int pageSize);
     
     @Update("update goods set sales = sales + #{count} where id = #{id}")
@@ -53,13 +53,13 @@ public interface GoodsMapper {
     @Update("update goods set stock = stock + #{count} where id = #{id}")
     public void restoreStock(@Param("id") int id, @Param("count") int count);
     
-    @Select("select count(*) from goods")
+    @Select("select count(*) from goods where status = 1")
     public int getGoodsCount();
     
-    @Select("select count(*) from goods where type_id = #{typeId} or type_id in (select id from type where pid = #{typeId})")
+    @Select("select count(*) from goods where status = 1 and (type_id = #{typeId} or type_id in (select id from type where pid = #{typeId}))")
     public int getGoodsCountByType(@Param("typeId") int typeId);
     
-    @Select("select count(*) from goods where name like concat('%', #{keyword}, '%')")
+    @Select("select count(*) from goods where status = 1 and name like concat('%', #{keyword}, '%')")
     public int searchGoodsCount(@Param("keyword") String keyword);
     
     @Select("select count(*) from goods where stock <= #{threshold}")
@@ -70,8 +70,18 @@ public interface GoodsMapper {
 
     @Select("select * from goods where stock <= #{threshold} order by stock asc")
     public List<Goods> getLowStockGoods(@Param("threshold") int threshold);
+
+    // ===== 管理后台专用（不过滤 status）=====
+    @Select("select g.*, t.name as typeName from goods g left join type t on g.type_id = t.id limit #{offset}, #{pageSize}")
+    public List<Goods> getGoodsByPageAdmin(@Param("offset") int offset, @Param("pageSize") int pageSize);
+
+    @Select("select count(*) from goods")
+    public int getGoodsCountAdmin();
+
+    @Update("update goods set status = #{status} where id = #{id}")
+    public void updateGoodsStatus(@Param("id") int id, @Param("status") int status);
     
-    @Insert("insert into goods (name, cover, image1, image2, price, intro, stock, type_id) values (#{name}, #{cover}, #{image1}, #{image2}, #{price}, #{intro}, #{stock}, #{typeId})")
+    @Insert("insert into goods (name, cover, image1, image2, price, intro, stock, status, type_id) values (#{name}, #{cover}, #{image1}, #{image2}, #{price}, #{intro}, #{stock}, #{status}, #{typeId})")
     public void addGoods(Goods goods);
     
     @Update("update goods set name = #{name}, cover = #{cover}, image1 = #{image1}, image2 = #{image2}, price = #{price}, intro = #{intro}, stock = #{stock}, type_id = #{typeId} where id = #{id}")

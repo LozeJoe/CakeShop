@@ -95,6 +95,12 @@
                             <button type="submit" class="btn btn-primary">💾 保存设置</button>
                         </div>
                     </form>
+
+                    <div class="setting-group" style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
+                        <h3>💿 数据备份</h3>
+                        <p class="hint" style="margin-bottom:12px;">导出完整数据库备份（SQL 格式），包含所有表和初始数据。</p>
+                        <a th:href="@{/admin/backup}" class="btn btn-primary">📥 下载备份</a>
+                    </div>
                 </div>
             </div>
         </div>

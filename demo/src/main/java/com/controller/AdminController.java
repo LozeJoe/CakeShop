@@ -13,10 +13,13 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.sql.DataSource;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @RequestMapping("/admin")
@@ -40,6 +43,20 @@ public class AdminController {
 
     @Resource
     private AdminLogService adminLogService;
+    @Resource
+    private com.mapper.ReviewMapper reviewMapper;
+    @Resource
+    private DataSource dataSource;
+
+    /** 要求超级管理员权限，否则返回 403 */
+    private boolean requireSuperAdmin(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String adminRole = (String) request.getAttribute("adminRole");
+        if (!"super_admin".equals(adminRole)) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "此功能需要超级管理员权限");
+            return false;
+        }
+        return true;
+    }
 
     @RequestMapping("/index")
     public ModelAndView index(HttpServletRequest request) {
@@ -88,6 +105,10 @@ public class AdminController {
             if (admin == null || !"1".equals(admin.getIsadmin())) {
                 modelAndView.setViewName("redirect:/user/login");
                 return modelAndView;
+            }
+            if (!"super_admin".equals(request.getAttribute("adminRole"))) {
+                modelAndView.addObject("error", "此功能需要超级管理员权限");
+                modelAndView.setViewName("error"); return modelAndView;
             }
 
             PageResult<User> pageResult;
@@ -295,7 +316,7 @@ public class AdminController {
                 return modelAndView;
             }
 
-            PageResult<Goods> pageResult = goodsService.getGoodsByPage(page, pageSize);
+            PageResult<Goods> pageResult = goodsService.getGoodsByPageAdmin(page, pageSize);
             List<Type> typeList = typeService.getAllTypes();
             modelAndView.addObject("goodsList", pageResult.getData());
             modelAndView.addObject("typeList", typeList);
@@ -462,6 +483,46 @@ public class AdminController {
         return modelAndView;
     }
 
+    @RequestMapping("/goodsOnShelf")
+    public ModelAndView goodsOnShelf(@RequestParam("id") int id, HttpServletRequest request) {
+        ModelAndView modelAndView = new ModelAndView();
+        try {
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+            if (user == null || !"1".equals(user.getIsadmin())) {
+                modelAndView.setViewName("redirect:/user/login");
+                return modelAndView;
+            }
+            goodsService.updateGoodsStatus(id, 1);
+            modelAndView.setViewName("redirect:/admin/goods");
+        } catch (Exception e) {
+            e.printStackTrace();
+            modelAndView.addObject("error", e.getMessage());
+            modelAndView.setViewName("error");
+        }
+        return modelAndView;
+    }
+
+    @RequestMapping("/goodsOffShelf")
+    public ModelAndView goodsOffShelf(@RequestParam("id") int id, HttpServletRequest request) {
+        ModelAndView modelAndView = new ModelAndView();
+        try {
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+            if (user == null || !"1".equals(user.getIsadmin())) {
+                modelAndView.setViewName("redirect:/user/login");
+                return modelAndView;
+            }
+            goodsService.updateGoodsStatus(id, 0);
+            modelAndView.setViewName("redirect:/admin/goods");
+        } catch (Exception e) {
+            e.printStackTrace();
+            modelAndView.addObject("error", e.getMessage());
+            modelAndView.setViewName("error");
+        }
+        return modelAndView;
+    }
+
     // ==================== 订单管理 ====================
     @RequestMapping("/orders")
     public ModelAndView orderList(@RequestParam(value = "page", defaultValue = "1") int page,
@@ -480,7 +541,10 @@ public class AdminController {
             }
 
             PageResult<Order> pageResult = orderService.getFilteredOrdersPage(status, keyword, page, pageSize);
+            // 逾期标记
+            java.util.Set<String> overdueIds = orderService.getOverdueOrderIds();
             modelAndView.addObject("orderList", pageResult.getData());
+            modelAndView.addObject("overdueIds", overdueIds);
             modelAndView.addObject("currentPage", pageResult.getCurrentPage());
             modelAndView.addObject("totalPages", pageResult.getTotalPages());
             modelAndView.addObject("totalCount", pageResult.getTotalCount());
@@ -590,6 +654,10 @@ public class AdminController {
             if (user == null || !"1".equals(user.getIsadmin())) {
                 modelAndView.setViewName("redirect:/user/login");
                 return modelAndView;
+            }
+            if (!"super_admin".equals(request.getAttribute("adminRole"))) {
+                modelAndView.addObject("error", "此功能需要超级管理员权限");
+                modelAndView.setViewName("error"); return modelAndView;
             }
 
             List<Type> typeList = typeService.getAllTypes();
@@ -703,6 +771,10 @@ public class AdminController {
                 modelAndView.setViewName("redirect:/user/login");
                 return modelAndView;
             }
+            if (!"super_admin".equals(request.getAttribute("adminRole"))) {
+                modelAndView.addObject("error", "此功能需要超级管理员权限");
+                modelAndView.setViewName("error"); return modelAndView;
+            }
             PageResult<AdminLog> pageResult = adminLogService.getLogsByPage(page, pageSize);
             modelAndView.addObject("logList", pageResult.getData());
             modelAndView.addObject("currentPage", pageResult.getCurrentPage());
@@ -729,6 +801,10 @@ public class AdminController {
             if (user == null || !"1".equals(user.getIsadmin())) {
                 modelAndView.setViewName("redirect:/user/login");
                 return modelAndView;
+            }
+            if (!"super_admin".equals(request.getAttribute("adminRole"))) {
+                modelAndView.addObject("error", "此功能需要超级管理员权限");
+                modelAndView.setViewName("error"); return modelAndView;
             }
             modelAndView.addObject("config", systemConfigService.getAll());
             modelAndView.addObject("defaults", systemConfigService.getDefaults());
@@ -776,5 +852,86 @@ public class AdminController {
             modelAndView.setViewName("error");
         }
         return modelAndView;
+    }
+
+    // ==================== 评论审核 ====================
+    @RequestMapping("/reviewAudit")
+    public ModelAndView reviewAudit(HttpServletRequest request) {
+        ModelAndView modelAndView = new ModelAndView();
+        try {
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+            if (user == null || !"1".equals(user.getIsadmin())) {
+                modelAndView.setViewName("redirect:/user/login");
+                return modelAndView;
+            }
+            modelAndView.addObject("pendingReviews", reviewMapper.getPendingReviews());
+            modelAndView.addObject("sidebarActive", "reviews");
+            modelAndView.addObject("pageTitle", "📝 评论审核");
+            modelAndView.setViewName("admin/reviewAudit");
+        } catch (Exception e) {
+            e.printStackTrace();
+            modelAndView.addObject("error", e.getMessage());
+            modelAndView.setViewName("error");
+        }
+        return modelAndView;
+    }
+
+    @RequestMapping("/reviewApprove")
+    public ModelAndView reviewApprove(@RequestParam("id") int id, HttpServletRequest request) {
+        reviewMapper.approveReview(id);
+        return new ModelAndView("redirect:/admin/reviewAudit");
+    }
+
+    @RequestMapping("/reviewReject")
+    public ModelAndView reviewReject(@RequestParam("id") int id, HttpServletRequest request) {
+        reviewMapper.rejectReview(id);
+        return new ModelAndView("redirect:/admin/reviewAudit");
+    }
+
+    // ==================== 数据备份 ====================
+    @RequestMapping("/backup")
+    public void backup(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        HttpSession session = request.getSession();
+        User user = (User) session.getAttribute("user");
+        if (user == null || !"1".equals(user.getIsadmin()) || !"super_admin".equals(request.getAttribute("adminRole"))) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+            return;
+        }
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=cakeshop-backup-" + java.time.LocalDate.now() + ".sql");
+        try (java.sql.Connection conn = dataSource.getConnection();
+             PrintWriter writer = response.getWriter()) {
+            writer.println("-- CakeShop Database Backup — " + java.time.LocalDateTime.now());
+            writer.println("-- Generated by Admin Backup Utility\n");
+            String[] tables = {"user","type","goods","order","orderitem","cart","review","favorite","rider","admin_log","rider_message","rider_chat"};
+            for (String table : tables) {
+                writer.println("-- =========================================");
+                writer.println("-- Table: " + table);
+                writer.println("-- =========================================\n");
+                String quotedTable = table.equals("order") ? "`order`" : table;
+                try (java.sql.Statement st = conn.createStatement();
+                     java.sql.ResultSet rs = st.executeQuery("SELECT * FROM " + quotedTable)) {
+                    java.sql.ResultSetMetaData meta = rs.getMetaData();
+                    int colCount = meta.getColumnCount();
+                    while (rs.next()) {
+                        StringBuilder sb = new StringBuilder("INSERT INTO " + quotedTable + " (");
+                        StringBuilder vals = new StringBuilder(" VALUES (");
+                        for (int i = 1; i <= colCount; i++) {
+                            if (i > 1) { sb.append(", "); vals.append(", "); }
+                            sb.append(meta.getColumnName(i));
+                            String val = rs.getString(i);
+                            if (val == null) { vals.append("NULL"); }
+                            else { vals.append("'").append(val.replace("'", "''")).append("'"); }
+                        }
+                        sb.append(")"); vals.append(");");
+                        writer.println(sb.toString() + vals.toString());
+                    }
+                } catch (Exception e) {
+                    writer.println("-- Skipped " + table + ": " + e.getMessage());
+                }
+                writer.println();
+            }
+        }
     }
 }

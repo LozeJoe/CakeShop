@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MySQL 数据库服务
   mysql:
@@ -26,6 +24,7 @@ services:
     container_name: cakeshop-app
     restart: always
     environment:
+      SERVER_PORT: 8090
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/cookieshop?useUnicode=true&characterEncoding=UTF-8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root

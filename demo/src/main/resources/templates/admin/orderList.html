@@ -25,64 +25,67 @@
             <!-- 搜索栏 -->
             <form class="search-bar" th:action="@{/admin/orders}" method="get">
                 <select name="status">
-                    <option value="0" th:selected="${filterStatus == 0}">全部状态</option>
-                    <option value="1" th:selected="${filterStatus == 1}">待支付</option>
-                    <option value="2" th:selected="${filterStatus == 2}">待配送</option>
-                    <option value="3" th:selected="${filterStatus == 3}">待取货</option>
-                    <option value="4" th:selected="${filterStatus == 4}">配送中</option>
-                    <option value="5" th:selected="${filterStatus == 5}">已送达</option>
-                    <option value="6" th:selected="${filterStatus == 6}">已取消</option>
+                    <option value="0" th:selected="${filterStatus == 0}" th:text="#{order.allStatus}">全部状态</option>
+                    <option value="1" th:selected="${filterStatus == 1}" th:text="#{order.status1}">待支付</option>
+                    <option value="2" th:selected="${filterStatus == 2}" th:text="#{order.status2}">待配送</option>
+                    <option value="3" th:selected="${filterStatus == 3}" th:text="#{order.status3}">待取货</option>
+                    <option value="4" th:selected="${filterStatus == 4}" th:text="#{order.status4}">配送中</option>
+                    <option value="5" th:selected="${filterStatus == 5}" th:text="#{order.status5}">已送达</option>
+                    <option value="6" th:selected="${filterStatus == 6}" th:text="#{order.status6}">已取消</option>
                 </select>
-                <input type="text" name="keyword" th:value="${filterKeyword}" placeholder="搜索订单号 / 收货人...">
-                <button type="submit" class="btn btn-primary btn-sm">🔍 搜索</button>
-                <a th:href="@{/admin/orders}" class="btn btn-sm btn-secondary">重置</a>
+                <input type="text" name="keyword" th:value="${filterKeyword}" th:placeholder="#{order.searchPlaceholder}">
+                <button type="submit" class="btn btn-primary btn-sm">🔍 <span th:text="#{common.search}">搜索</span></button>
+                <a th:href="@{/admin/orders}" class="btn btn-sm btn-secondary" th:text="#{common.reset}">重置</a>
             </form>
 
             <div class="table-container">
                 <table>
-                    <thead><tr><th>订单号</th><th>收货人</th><th>数量</th><th>金额</th><th>配送费</th><th>状态</th><th>时间</th><th>操作</th></tr></thead>
+                    <thead><tr><th th:text="#{order.id}">订单号</th><th th:text="#{order.customer}">收货人</th><th th:text="#{order.amount}">数量</th><th th:text="#{order.total}">金额</th><th th:text="#{order.commission}">配送费</th><th th:text="#{order.status}">状态</th><th th:text="#{order.time}">时间</th><th th:text="#{user.actions}">操作</th></tr></thead>
                     <tbody>
-                        <tr th:each="order : ${orderList}">
-                            <td style="font-family:monospace;font-size:12px;" th:text="${order.id}"></td>
+                        <tr th:each="order : ${orderList}" th:classappend="${overdueIds.contains(order.id) ? 'overdue-row' : ''}">
+                            <td style="font-family:monospace;font-size:12px;">
+                                <span th:if="${overdueIds.contains(order.id)}" style="color:var(--red);font-weight:700;" title="逾期订单">⚠ </span>
+                                <span th:text="${order.id}"></span>
+                            </td>
                             <td th:text="${order.name}"></td>
                             <td th:text="${order.amount}"></td>
                             <td class="total-price" style="font-size:16px;">&yen;[[${#numbers.formatDecimal(order.total, 0, 2)}]]</td>
                             <td style="font-weight:600;color:var(--blue);">
                                 <span th:if="${order.commission > 0}">&yen;[[${#numbers.formatDecimal(order.commission, 0, 2)}]]</span>
-                                <span th:if="${order.commission == 0}" style="color:var(--gray);">未设置</span>
+                                <span th:if="${order.commission == 0}" style="color:var(--gray);" th:text="#{order.commissionNotSet}">未设置</span>
                             </td>
                             <td>
                                 <span class="order-status" th:classappend="${order.status == 1 ? 'status-warning' : (order.status == 2 ? 'status-active' : (order.status == 3 ? 'status-active' : (order.status == 4 ? 'status-active' : (order.status == 5 ? 'status-success' : 'status-danger'))))}">
-                                    <span th:if="${order.status == 1}">待支付</span>
-                                    <span th:if="${order.status == 2}">待配送</span>
-                                    <span th:if="${order.status == 3}">待取货</span>
-                                    <span th:if="${order.status == 4}">配送中</span>
-                                    <span th:if="${order.status == 5}">已送达</span>
-                                    <span th:if="${order.status == 6}">已取消</span>
+                                    <span th:if="${order.status == 1}" th:text="#{order.status1}">待支付</span>
+                                    <span th:if="${order.status == 2}" th:text="#{order.status2}">待配送</span>
+                                    <span th:if="${order.status == 3}" th:text="#{order.status3}">待取货</span>
+                                    <span th:if="${order.status == 4}" th:text="#{order.status4}">配送中</span>
+                                    <span th:if="${order.status == 5}" th:text="#{order.status5}">已送达</span>
+                                    <span th:if="${order.status == 6}" th:text="#{order.status6}">已取消</span>
                                 </span>
                             </td>
                             <td th:text="${#strings.substring(order.datetime, 0, 16)}"></td>
                             <td style="white-space:nowrap;">
-                                <a th:href="@{/admin/orderDetail(orderId=${order.id})}" class="btn btn-sm btn-info">详情</a>
+                                <a th:href="@{/admin/orderDetail(orderId=${order.id})}" class="btn btn-sm btn-info" th:text="#{order.detail}">详情</a>
                                 <form class="commission-form" th:action="@{/admin/orderSetCommission}" method="post" style="display:inline-flex;">
                                     <input type="hidden" name="orderId" th:value="${order.id}">
-                                    <input type="number" name="commission" step="0.01" min="0" th:value="${order.commission > 0 ? order.commission : ''}" placeholder="配送费">
-                                    <button type="submit" class="btn btn-sm btn-warning">设置</button>
+                                    <input type="number" name="commission" step="0.01" min="0" th:value="${order.commission > 0 ? order.commission : ''}" th:placeholder="#{order.commissionPlaceholder}">
+                                    <button type="submit" class="btn btn-sm btn-warning" th:text="#{order.commissionSet}">设置</button>
                                 </form>
                             </td>
                         </tr>
                     </tbody>
                 </table>
                 <div class="pagination" th:if="${totalPages != null && totalPages > 1}">
-                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">首页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">首页</span>
-                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}">上一页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}">上一页</span>
+                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=1)}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}" th:text="#{common.pageHome}">首页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}" th:text="#{common.pageHome}">首页</span>
+                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${currentPage - 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage != 1}" th:text="#{common.pagePrev}">上一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage == 1}" th:text="#{common.pagePrev}">上一页</span>
                     <a th:each="i : ${#numbers.sequence(1, totalPages)}" th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${i})}" th:class="${i == currentPage ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary'}" th:text="${i}"></a>
-                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">下一页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">下一页</span>
-                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}">末页</a>
-                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}">末页</span>
+                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${currentPage + 1})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}" th:text="#{common.pageNext}">下一页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}" th:text="#{common.pageNext}">下一页</span>
+                    <a th:href="@{/admin/orders(status=${filterStatus}, keyword=${filterKeyword}, page=${totalPages})}" class="btn btn-sm btn-secondary" th:if="${currentPage < totalPages}" th:text="#{common.pageLast}">末页</a>
+                    <span class="btn btn-sm btn-secondary" style="opacity:.3;cursor:default;" th:if="${currentPage >= totalPages}" th:text="#{common.pageLast}">末页</span>
                 </div>
             </div>
         </div>

@@ -9,7 +9,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 删除现有表（按依赖顺序）
 DROP TABLE IF EXISTS `recommend`;
 DROP TABLE IF EXISTS `orderitem`;
-DROP TABLE IF EXISTS `orders`;
+DROP TABLE IF EXISTS `order`;
 DROP TABLE IF EXISTS `cart`;
 DROP TABLE IF EXISTS `favorite`;
 DROP TABLE IF EXISTS `review`;
@@ -35,6 +35,7 @@ CREATE TABLE `user` (
   `address` varchar(255) DEFAULT NULL COMMENT '地址',
   `isadmin` varchar(1) DEFAULT '0' COMMENT '是否管理员(0/1)',
   `isvalidate` varchar(1) DEFAULT '0' COMMENT '是否验证(0/1)',
+  `admin_role` varchar(20) DEFAULT 'admin' COMMENT '管理员角色 super_admin/admin',
   `regtime` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `username_UNIQUE` (`username`),
@@ -67,6 +68,7 @@ CREATE TABLE `goods` (
   `intro` text COMMENT '商品简介',
   `stock` int(11) DEFAULT '0' COMMENT '库存数量',
   `sales` int(11) DEFAULT '0' COMMENT '销量',
+  `status` int(1) DEFAULT '1' COMMENT '状态 1=上架 0=下架',
   `type_id` int(11) DEFAULT '0' COMMENT '分类ID',
   `addtime` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '添加时间',
   PRIMARY KEY (`id`)
@@ -75,7 +77,7 @@ CREATE TABLE `goods` (
 -- ==============================================
 -- 订单表
 -- ==============================================
-CREATE TABLE `orders` (
+CREATE TABLE `order` (
   `id` varchar(50) NOT NULL COMMENT '订单ID',
   `user_id` int(11) NOT NULL COMMENT '用户ID',
   `name` varchar(50) NOT NULL COMMENT '收货人姓名',
@@ -86,8 +88,14 @@ CREATE TABLE `orders` (
   `status` int(11) DEFAULT '1' COMMENT '订单状态',
   `paytype` int(11) DEFAULT NULL COMMENT '支付方式',
   `datetime` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
+  `delivery_time` datetime DEFAULT NULL COMMENT '期望送达时间',
+  `latitude` double DEFAULT NULL COMMENT '收货纬度',
+  `longitude` double DEFAULT NULL COMMENT '收货经度',
+  `commission` decimal(10,2) DEFAULT NULL COMMENT '配送佣金',
   `rider_id` int(11) DEFAULT '0' COMMENT '骑手ID',
   `rider_income` decimal(10,2) DEFAULT '0.00' COMMENT '配送费',
+  `review_rating` int(1) DEFAULT NULL COMMENT '评价评分 1-5',
+  `review_content` varchar(500) DEFAULT NULL COMMENT '评价内容',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -138,6 +146,7 @@ CREATE TABLE `review` (
   `user_name` varchar(50) DEFAULT NULL COMMENT '用户名',
   `content` varchar(500) NOT NULL COMMENT '评论内容',
   `rating` int(1) DEFAULT '5' COMMENT '评分 1-5',
+  `status` int(1) DEFAULT '1' COMMENT '状态 0=待审核 1=已通过',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '评论时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4;
@@ -190,9 +199,9 @@ CREATE TABLE `admin_log` (
 -- ==============================================
 
 -- 用户数据
-INSERT INTO `user` (`username`, `password`, `name`, `email`, `phone`, `address`, `isadmin`, `isvalidate`) VALUES
-('admin', '21232f297a57a5a743894a0e4a801fc3', '管理员', 'admin@cakeshop.com', '13800138000', '管理员地址', '1', '1'),
-('vili', '202cb962ac59075b964b07152d234b70', '普通用户', 'vili@cakeshop.com', '13900139000', '用户地址', '0', '1');
+INSERT INTO `user` (`username`, `password`, `name`, `email`, `phone`, `address`, `isadmin`, `isvalidate`, `admin_role`) VALUES
+('admin', '21232f297a57a5a743894a0e4a801fc3', '管理员', 'admin@cakeshop.com', '13800138000', '管理员地址', '1', '1', 'super_admin'),
+('vili', '202cb962ac59075b964b07152d234b70', '普通用户', 'vili@cakeshop.com', '13900139000', '用户地址', '0', '1', NULL);
 
 -- 分类数据
 INSERT INTO `type` (`name`, `pid`, `sort`) VALUES
@@ -208,15 +217,15 @@ INSERT INTO `type` (`name`, `pid`, `sort`) VALUES
 ('提拉米苏', 3, 2);
 
 -- 商品数据
-INSERT INTO `goods` (`name`, `cover`, `image1`, `image2`, `image3`, `price`, `intro`, `stock`, `sales`, `type_id`) VALUES
-('经典巧克力蛋糕', '/picture/1-1.jpg', '/picture/1-1.jpg', '/picture/1-2.jpg', '/picture/1-3.jpg', 168.00, '精选比利时黑巧克力，浓郁丝滑，口感细腻', 100, 50, 4),
-('草莓慕斯蛋糕', '/picture/2-1.jpg', '/picture/2-1.jpg', '/picture/2-2.jpg', '/picture/2-3.jpg', 188.00, '新鲜草莓搭配轻盈慕斯，入口即化', 80, 30, 5),
-('纽约芝士蛋糕', '/picture/3-1.jpg', '/picture/3-1.jpg', '/picture/3-2.jpg', '/picture/3-3.jpg', 198.00, '浓郁芝士风味，经典纽约配方', 60, 25, 6),
-('法式牛角包', '/picture/4-1.jpg', '/picture/4-1.jpg', '/picture/4-2.jpg', '/picture/4-3.jpg', 18.00, '法式经典，层次分明，黄油香浓', 200, 150, 7),
-('日式红豆面包', '/picture/5-1.jpg', '/picture/5-1.jpg', '/picture/5-2.jpg', '/picture/5-3.jpg', 12.00, '日式松软面包，红豆沙内馅', 150, 80, 8),
-('经典马卡龙礼盒', '/picture/6-1.jpg', '/picture/6-1.jpg', '/picture/6-2.jpg', '/picture/6-3.jpg', 88.00, '法式马卡龙，多种口味组合', 100, 45, 9),
-('意式提拉米苏', '/picture/7-1.jpg', '/picture/7-1.jpg', '/picture/7-2.jpg', '/picture/7-3.jpg', 38.00, '经典意式配方，咖啡酒香浓郁', 50, 60, 10),
-('抹茶千层蛋糕', '/picture/8-1.jpg', '/picture/8-1.jpg', '/picture/8-2.jpg', '/picture/8-3.jpg', 178.00, '日本宇治抹茶，清新回甘', 70, 35, 5);
+INSERT INTO `goods` (`name`, `cover`, `image1`, `image2`, `image3`, `price`, `intro`, `stock`, `sales`, `status`, `type_id`) VALUES
+('经典巧克力蛋糕', '/picture/1-1.jpg', '/picture/1-1.jpg', '/picture/1-2.jpg', '/picture/1-3.jpg', 168.00, '精选比利时黑巧克力，浓郁丝滑，口感细腻', 100, 50, 1, 4),
+('草莓慕斯蛋糕', '/picture/2-1.jpg', '/picture/2-1.jpg', '/picture/2-2.jpg', '/picture/2-3.jpg', 188.00, '新鲜草莓搭配轻盈慕斯，入口即化', 80, 30, 1, 5),
+('纽约芝士蛋糕', '/picture/3-1.jpg', '/picture/3-1.jpg', '/picture/3-2.jpg', '/picture/3-3.jpg', 198.00, '浓郁芝士风味，经典纽约配方', 60, 25, 1, 6),
+('法式牛角包', '/picture/4-1.jpg', '/picture/4-1.jpg', '/picture/4-2.jpg', '/picture/4-3.jpg', 18.00, '法式经典，层次分明，黄油香浓', 200, 150, 1, 7),
+('日式红豆面包', '/picture/5-1.jpg', '/picture/5-1.jpg', '/picture/5-2.jpg', '/picture/5-3.jpg', 12.00, '日式松软面包，红豆沙内馅', 150, 80, 1, 8),
+('经典马卡龙礼盒', '/picture/6-1.jpg', '/picture/6-1.jpg', '/picture/6-2.jpg', '/picture/6-3.jpg', 88.00, '法式马卡龙，多种口味组合', 100, 45, 1, 9),
+('意式提拉米苏', '/picture/7-1.jpg', '/picture/7-1.jpg', '/picture/7-2.jpg', '/picture/7-3.jpg', 38.00, '经典意式配方，咖啡酒香浓郁', 50, 60, 1, 10),
+('抹茶千层蛋糕', '/picture/8-1.jpg', '/picture/8-1.jpg', '/picture/8-2.jpg', '/picture/8-3.jpg', 178.00, '日本宇治抹茶，清新回甘', 70, 35, 1, 5);
 
 -- 推荐数据
 INSERT INTO `recommend` (`type`, `goods_id`) VALUES
@@ -227,14 +236,14 @@ INSERT INTO `recommend` (`type`, `goods_id`) VALUES
 (3, 6);
 
 -- 评论数据
-INSERT INTO `review` (`goods_id`, `user_id`, `user_name`, `content`, `rating`, `create_time`) VALUES
-(1, 2, 'vili', '巧克力味道非常浓郁，入口即化，绝对是巧克力爱好者的首选！', 5, '2026-06-01 10:30:00'),
-(1, 1, '管理员', '店内招牌产品，比利时进口巧克力原料，品质保证。', 5, '2026-06-01 14:20:00'),
-(2, 2, 'vili', '草莓很新鲜，慕斯轻盈不腻，夏天吃太合适了。', 4, '2026-06-02 09:15:00'),
-(3, 2, 'vili', '芝士味很正，分量也足，回购了好几次。', 5, '2026-06-02 16:40:00'),
-(4, 1, '管理员', '经典法式工艺，层层酥脆，早餐搭配咖啡绝佳。', 5, '2026-06-03 08:00:00'),
-(7, 2, 'vili', '提拉米苏的咖啡酒味恰到好处，不会太甜。', 4, '2026-06-03 11:30:00'),
-(8, 1, '管理员', '宇治抹茶粉制作，茶香清新，千层皮薄如蝉翼。', 5, '2026-06-04 10:00:00');
+INSERT INTO `review` (`goods_id`, `user_id`, `user_name`, `content`, `rating`, `status`, `create_time`) VALUES
+(1, 2, 'vili', '巧克力味道非常浓郁，入口即化，绝对是巧克力爱好者的首选！', 5, 1, '2026-06-01 10:30:00'),
+(1, 1, '管理员', '店内招牌产品，比利时进口巧克力原料，品质保证。', 5, 1, '2026-06-01 14:20:00'),
+(2, 2, 'vili', '草莓很新鲜，慕斯轻盈不腻，夏天吃太合适了。', 4, 1, '2026-06-02 09:15:00'),
+(3, 2, 'vili', '芝士味很正，分量也足，回购了好几次。', 5, 1, '2026-06-02 16:40:00'),
+(4, 1, '管理员', '经典法式工艺，层层酥脆，早餐搭配咖啡绝佳。', 5, 1, '2026-06-03 08:00:00'),
+(7, 2, 'vili', '提拉米苏的咖啡酒味恰到好处，不会太甜。', 4, 1, '2026-06-03 11:30:00'),
+(8, 1, '管理员', '宇治抹茶粉制作，茶香清新，千层皮薄如蝉翼。', 5, 1, '2026-06-04 10:00:00');
 
 -- 收藏数据
 INSERT INTO `favorite` (`user_id`, `goods_id`, `create_time`) VALUES
@@ -243,7 +252,7 @@ INSERT INTO `favorite` (`user_id`, `goods_id`, `create_time`) VALUES
 (2, 8, '2026-06-03 12:00:00');
 
 -- 订单数据
-INSERT INTO `orders` (`id`, `user_id`, `name`, `phone`, `address`, `total`, `amount`, `status`, `paytype`, `datetime`) VALUES
+INSERT INTO `order` (`id`, `user_id`, `name`, `phone`, `address`, `total`, `amount`, `status`, `paytype`, `datetime`) VALUES
 ('20260601001', 2, 'vili', '13900139000', '上海市浦东新区', 356.00, 2, 5, 1, '2026-06-01 15:30:00'),
 ('20260603002', 2, 'vili', '13900139000', '上海市浦东新区', 198.00, 1, 2, 2, '2026-06-03 09:00:00'),
 ('20260604003', 1, '管理员', '13800138000', '北京市朝阳区', 88.00, 1, 2, 1, '2026-06-04 14:00:00');

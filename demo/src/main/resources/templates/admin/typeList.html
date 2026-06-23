@@ -13,14 +13,14 @@
             <header th:replace="admin/commons::header"></header>
             <div class="table-container">
                 <table>
-                    <thead><tr><th>ID</th><th>分类名称</th><th>操作</th></tr></thead>
+                    <thead><tr><th th:text="#{goods.id}">ID</th><th th:text="#{type.name}">名称</th><th th:text="#{user.actions}">操作</th></tr></thead>
                     <tbody>
                         <tr th:each="type : ${typeList}">
                             <td th:text="${type.id}"></td>
                             <td style="font-weight:500;" th:text="${type.name}"></td>
                             <td>
-                                <a th:href="@{/admin/typeEdit(id=${type.id})}" class="btn btn-sm btn-warning">编辑</a>
-                                <a th:href="@{/admin/typeDelete(id=${type.id})}" class="btn btn-sm btn-danger" onclick="return confirm('确定删除？')">删除</a>
+                                <a th:href="@{/admin/typeEdit(id=${type.id})}" class="btn btn-sm btn-warning" th:text="#{common.edit}">编辑</a>
+                                <a th:href="@{/admin/typeDelete(id=${type.id})}" class="btn btn-sm btn-danger" th:onclick="|return confirm('#{goods.confirmDelete}')|" th:text="#{common.delete}">删除</a>
                             </td>
                         </tr>
                     </tbody>

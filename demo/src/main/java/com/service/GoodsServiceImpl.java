@@ -123,4 +123,15 @@ public class GoodsServiceImpl implements GoodsService {
 
     @Override
     public List<Goods> getLowStockGoods(int threshold) { return goodsMapper.getLowStockGoods(threshold); }
+
+    @Override
+    public void updateGoodsStatus(int id, int status) { goodsMapper.updateGoodsStatus(id, status); }
+
+    @Override
+    public PageResult<Goods> getGoodsByPageAdmin(int pageNum, int pageSize) {
+        int offset = (pageNum - 1) * pageSize;
+        List<Goods> data = goodsMapper.getGoodsByPageAdmin(offset, pageSize);
+        int totalCount = goodsMapper.getGoodsCountAdmin();
+        return new PageResult<>(data, pageNum, pageSize, totalCount);
+    }
 }

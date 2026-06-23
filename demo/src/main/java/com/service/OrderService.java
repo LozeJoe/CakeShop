@@ -45,4 +45,8 @@ public interface OrderService {
     void acceptOrder(String orderId, int riderId);
     void startDelivery(String orderId, int riderId);
     void completeDelivery(String orderId, int riderId, double income);
+    // 逾期提醒
+    int getOverduePaymentCount();
+    int getOverdueDeliveryCount();
+    java.util.Set<String> getOverdueOrderIds();
 }

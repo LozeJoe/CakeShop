@@ -1,5 +1,5 @@
-# 使用 Java 8 基础镜像
-FROM openjdk:8-jdk-alpine
+# 使用 Java 17 基础镜像（兼容 Java 12 编译的 jar）
+FROM eclipse-temurin:17-jre-alpine
 
 # 设置工作目录
 WORKDIR /app

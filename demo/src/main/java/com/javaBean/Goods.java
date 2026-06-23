@@ -31,5 +31,6 @@ public class Goods {
     int typeId;
     String typeName;
     int sales;
+    int status;
     String addtime;
 }

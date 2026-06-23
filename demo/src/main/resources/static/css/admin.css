@@ -191,3 +191,7 @@ tbody tr:hover{background:rgba(0,113,227,.025);transform:scale(1.002);}
 
 .theme-toggle{background:none;border:none;font-size:16px;cursor:pointer;padding:4px 8px;border-radius:var(--radius-full);transition:all var(--trans);color:rgba(255,255,255,.6);}
 .theme-toggle:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+/* 逾期订单标记 */
+tr.overdue-row{background:rgba(255,59,48,.06)!important;border-left:3px solid var(--red);}
+tr.overdue-row:hover{background:rgba(255,59,48,.12)!important;}

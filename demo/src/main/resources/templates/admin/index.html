@@ -142,11 +142,11 @@
         <div th:replace="admin/commons::sidebar"></div>
         <div class="main-content" id="mainContent">
             <header class="admin-header">
-                <h1>📊 数据概览</h1>
+                <h1><span th:text="#{admin.dashboard}">📊 数据概览</span></h1>
                 <div class="refresh-bar">
-                    <span class="countdown" id="countdown">30s 后刷新</span>
+                    <span class="countdown" id="countdown" th:text="#{dashboard.refreshCountdown}">30s 后刷新</span>
                     <button class="refresh-btn" id="refreshBtn" onclick="refreshData()">
-                        <span class="refresh-icon">🔄</span> 刷新
+                        <span class="refresh-icon">🔄</span> <span th:text="#{dashboard.refresh}">刷新</span>
                     </button>
                 </div>
             </header>
@@ -154,78 +154,86 @@
             <!-- ── 8 KPI 卡片 ── -->
             <div class="stats-grid" id="kpiGrid">
                 <div class="kpi-card kpi-gold">
-                    <div class="kpi-icon">💰</div><div class="kpi-label">总营收</div>
+                    <div class="kpi-icon">💰</div><div class="kpi-label" th:text="#{kpi.totalRevenue}">总营收</div>
                     <div class="kpi-value" id="kpi-totalRevenue">--</div>
                 </div>
                 <div class="kpi-card kpi-caramel">
-                    <div class="kpi-icon">📅</div><div class="kpi-label">今日营收</div>
+                    <div class="kpi-icon">📅</div><div class="kpi-label" th:text="#{kpi.todayRevenue}">今日营收</div>
                     <div class="kpi-value" id="kpi-todayRevenue">--</div>
-                    <div class="kpi-sub">今日订单 <span id="kpi-todayOrders">--</span> 单</div>
+                    <div class="kpi-sub"><span th:text="#{kpi.todayOrders}">今日订单</span> <span id="kpi-todayOrders">--</span> <span th:text="#{kpi.unit}">单</span></div>
                 </div>
                 <div class="kpi-card kpi-chocolate">
-                    <div class="kpi-icon">📋</div><div class="kpi-label">总订单数</div>
+                    <div class="kpi-icon">📋</div><div class="kpi-label" th:text="#{kpi.totalOrders}">总订单数</div>
                     <div class="kpi-value" id="kpi-totalOrders">--</div>
-                    <div class="kpi-sub">已完成 <span id="kpi-completedOrders">--</span></div>
+                    <div class="kpi-sub"><span th:text="#{kpi.completedOrders}">已完成</span> <span id="kpi-completedOrders">--</span></div>
                 </div>
                 <div class="kpi-card kpi-rose">
-                    <div class="kpi-icon">⏳</div><div class="kpi-label">待处理订单</div>
+                    <div class="kpi-icon">⏳</div><div class="kpi-label" th:text="#{kpi.pendingOrders}">待处理订单</div>
                     <div class="kpi-value" id="kpi-pendingOrders">--</div>
                 </div>
                 <div class="kpi-card kpi-gold">
-                    <div class="kpi-icon">👥</div><div class="kpi-label">用户总数</div>
+                    <div class="kpi-icon">👥</div><div class="kpi-label" th:text="#{kpi.totalUsers}">用户总数</div>
                     <div class="kpi-value" id="kpi-totalUsers">--</div>
-                    <div class="kpi-sub">骑手 <span id="kpi-riderCount">--</span> 人</div>
+                    <div class="kpi-sub"><span th:text="#{kpi.riderCount}">骑手数量</span> <span id="kpi-riderCount">--</span> <span th:text="#{kpi.ppl}">人</span></div>
                 </div>
                 <div class="kpi-card kpi-sage">
-                    <div class="kpi-icon">🎂</div><div class="kpi-label">商品总数</div>
+                    <div class="kpi-icon">🎂</div><div class="kpi-label" th:text="#{kpi.totalStock}">总库存</div>
                     <div class="kpi-value" id="kpi-totalGoods">--</div>
-                    <div class="kpi-sub">总库存 <span id="kpi-totalStock">--</span></div>
+                    <div class="kpi-sub"><span th:text="#{kpi.totalStock}">总库存</span> <span id="kpi-totalStock">--</span></div>
                 </div>
                 <div class="kpi-card kpi-blush">
-                    <div class="kpi-icon">🛵</div><div class="kpi-label">骑手数量</div>
+                    <div class="kpi-icon">🛵</div><div class="kpi-label" th:text="#{kpi.riderCount}">骑手数量</div>
                     <div class="kpi-value" id="kpi-riderCount2">--</div>
                 </div>
                 <div class="kpi-card kpi-caramel">
-                    <div class="kpi-icon">📊</div><div class="kpi-label">平均客单价</div>
+                    <div class="kpi-icon">📊</div><div class="kpi-label" th:text="#{kpi.avgOrderValue}">平均客单价</div>
                     <div class="kpi-value" id="kpi-avgOrderValue">--</div>
+                </div>
+                <div class="kpi-card kpi-rose">
+                    <div class="kpi-icon">⏰</div><div class="kpi-label" th:text="#{kpi.overduePayment}">逾期待支付</div>
+                    <div class="kpi-value" id="kpi-overduePaymentCount">--</div>
+                </div>
+                <div class="kpi-card kpi-chocolate">
+                    <div class="kpi-icon">🚨</div><div class="kpi-label" th:text="#{kpi.overdueDelivery}">逾期未送达</div>
+                    <div class="kpi-value" id="kpi-overdueDeliveryCount">--</div>
                 </div>
             </div>
 
             <!-- ── 6 ECharts 图表 ── -->
             <div class="chart-row">
                 <div class="chart-card">
-                    <h3>📈 月度销售趋势</h3>
+                    <h3 th:text="#{chart.monthlySales}">📈 月度销售趋势</h3>
                     <div class="chart-box" id="chart-sales"></div>
                 </div>
                 <div class="chart-card">
-                    <h3>🍩 订单状态分布</h3>
+                    <h3 th:text="#{chart.orderStatusDist}">🍩 订单状态分布</h3>
                     <div class="chart-box" id="chart-order-status"></div>
                 </div>
             </div>
             <div class="chart-row">
                 <div class="chart-card chart-full">
-                    <h3>🔥 热销商品 TOP10</h3>
+                    <h3 th:text="#{chart.topGoods}">🔥 热销商品 TOP10</h3>
                     <div class="chart-box" id="chart-top-goods" style="height:380px;"></div>
                 </div>
             </div>
             <div class="chart-row">
                 <div class="chart-card">
-                    <h3>📅 近7天订单趋势</h3>
+                    <h3 th:text="#{chart.weeklyOrders}">📅 近7天订单趋势</h3>
                     <div class="chart-box" id="chart-weekly-orders"></div>
                 </div>
                 <div class="chart-card">
-                    <h3>💵 近30天营收趋势</h3>
+                    <h3 th:text="#{chart.revenue30d}">💵 近30天营收趋势</h3>
                     <div class="chart-box" id="chart-revenue-30d"></div>
                 </div>
             </div>
             <div class="chart-row">
                 <div class="chart-card">
-                    <h3>🌹 类别销售额分布</h3>
+                    <h3 th:text="#{chart.categorySalesDist}">🌹 类别销售额分布</h3>
                     <div class="chart-box" id="chart-category-sales"></div>
                 </div>
                 <div class="chart-card">
-                    <h3>📋 最近订单</h3>
-                    <div th:if="${recentOrders == null || recentOrders.isEmpty()}" class="empty-state" style="padding:30px;"><p>暂无订单</p></div>
+                    <h3 th:text="#{chart.recentOrders}">📋 最近订单</h3>
+                    <div th:if="${recentOrders == null || recentOrders.isEmpty()}" class="empty-state" style="padding:30px;"><p th:text="#{dashboard.noOrders}">暂无订单</p></div>
                     <ul class="quick-list" id="recentOrderList" th:if="${recentOrders != null && !recentOrders.isEmpty()}">
                         <li th:each="order,stat : ${recentOrders}">
                             <div class="flex-row">
@@ -264,7 +272,26 @@
         </div>
     </div>
 
-    <script>
+    <script th:inline="javascript">
+        // ═══════════════ i18n 翻译（由 Thymeleaf 注入）═══════════════
+        var i18n = {
+            monthlySales: /*[[#{chart.monthlySales}]]*/'月度销售趋势',
+            orderStatusDist: /*[[#{chart.orderStatusDist}]]*/'订单状态分布',
+            topGoods: /*[[#{chart.topGoods}]]*/'热销商品 TOP10',
+            weeklyOrders: /*[[#{chart.weeklyOrders}]]*/'近7天订单趋势',
+            revenue30d: /*[[#{chart.revenue30d}]]*/'近30天营收趋势',
+            categorySales: /*[[#{chart.categorySalesDist}]]*/'类别销售额分布',
+            recentOrders: /*[[#{chart.recentOrders}]]*/'最近订单',
+            orderCount: /*[[#{chart.orderCount}]]*/'订单数',
+            salesAmount: /*[[#{chart.salesAmount}]]*/'销售额',
+            noOrders: /*[[#{dashboard.noOrders}]]*/'暂无订单',
+            refreshCountdown: /*[[#{dashboard.refreshCountdown}]]*/'s 后刷新',
+            statusNames: ['',/*[[#{order.status1}]]*/'待支付',/*[[#{order.status2}]]*/'待配送',/*[[#{order.status3}]]*/'待取货',/*[[#{order.status4}]]*/'配送中',/*[[#{order.status5}]]*/'已送达',/*[[#{order.status6}]]*/'已取消'],
+            loadingText: /*[[#{dashboard.loading}]]*/'加载中...',
+            stockWarnTitle: /*[[#{dashboard.stockWarnTitle}]]*/'库存预警',
+            gotoHandle: /*[[#{dashboard.gotoHandle}]]*/'前往处理',
+            closeText: /*[[#{dashboard.close}]]*/'关闭'
+        };
         // ═══════════════ 全局状态 ═══════════════
         var charts = {};
         var refreshSeconds = 30;
@@ -335,7 +362,7 @@
             });
             charts.sales.setOption({
                 tooltip:{trigger:'axis'},
-                legend:{data:['订单数','销售额'],bottom:0,textStyle:{fontSize:11}},
+                legend:{data:[i18n.orderCount,i18n.salesAmount],bottom:0,textStyle:{fontSize:11}},
                 grid:{left:'3%',right:'4%',bottom:'14%',top:'8%',containLabel:true},
                 xAxis:{type:'category',data:months,axisLabel:{rotate:30,fontSize:10}},
                 yAxis:[
@@ -350,7 +377,7 @@
 
             // 2) 订单状态分布
             var statusData = [];
-            var statusNames = ['','待支付','待配送','待取货','配送中','已送达','已取消'];
+            var statusNames = i18n.statusNames;
             (data.orderStatusDist || []).forEach(function(r){
                 var s = parseInt(r.STATUS||r.status||0), c = parseInt(r.CNT||r.cnt||0);
                 if(s>=1 && s<=6) statusData.push({value:c, name:statusNames[s]});
@@ -448,6 +475,8 @@
                     updateKPI('totalStock', data.totalStock, 0);
                     updateKPI('riderCount2', data.riderCount, 0);
                     updateKPI('avgOrderValue', data.avgOrderValue, 2);
+                    updateKPI('overduePaymentCount', data.overduePaymentCount, 0);
+                    updateKPI('overdueDeliveryCount', data.overdueDeliveryCount, 0);
                     // Charts
                     updateCharts(data);
                     // 重置倒计时
@@ -482,7 +511,7 @@
 
         // ═══════════════ 倒计时 ═══════════════
         function updateCountdown() {
-            document.getElementById('countdown').textContent = refreshSeconds + 's 后刷新';
+            document.getElementById('countdown').textContent = refreshSeconds + i18n.refreshCountdown;
         }
         function startCountdown() {
             if (countdownTimer) clearInterval(countdownTimer);

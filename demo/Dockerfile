@@ -1,17 +1,17 @@
-# 使用 Java 17 基础镜像（兼容 Java 12 编译的 jar）
+# ── 阶段1: Maven 构建 ──
+FROM maven:3.9-eclipse-temurin-17-alpine AS builder
+WORKDIR /build
+COPY pom.xml mvnw mvnw.cmd ./
+COPY .mvn .mvn
+# 先下载依赖（利用 Docker 缓存层）
+RUN mvn dependency:go-offline -B 2>/dev/null || true
+COPY src ./src
+RUN mvn package -DskipTests -B
+
+# ── 阶段2: 运行时 ──
 FROM eclipse-temurin:17-jre-alpine
-
-# 设置工作目录
 WORKDIR /app
-
-# 复制 Maven 构建后的 JAR 文件
-COPY target/demo-0.0.1-SNAPSHOT.jar app.jar
-
-# 暴露端口
+COPY --from=builder /build/target/demo-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8090
-
-# 设置环境变量（可通过 docker-compose 覆盖）
 ENV SPRING_PROFILES_ACTIVE=prod
-
-# 启动应用
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -46,9 +46,9 @@ mybatis:
 
 deepseek:
   api:
-    url: https://api.deepseek.com/v1/chat/completions
-    key: ${DEEPSEEK_API_KEY:sk-placeholder}
-    model: deepseek-chat
+    url: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+    key: ${DEEPSEEK_API_KEY:ark-f37252a3-cd7f-4ce4-b384-a637ff8c26e9-bc8da}
+    model: cake-shop-ep-20260612153107-bsbvn
 
 logging:
   level:

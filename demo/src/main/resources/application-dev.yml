@@ -19,3 +19,10 @@ spring:
 mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# ── AI 客服 火山方舟 API 配置 ──
+ark:
+  api:
+    url: https://ark.cn-beijing.volces.com/api/v3/chat/completions
+    key: ${ARK_API_KEY}
+    model: ep-20260623134604-xrmhh

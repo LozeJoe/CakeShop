@@ -8,6 +8,8 @@ import com.javaBean.Goods;
 import com.javaBean.Type;
 import com.mapper.GoodsMapper;
 import com.mapper.TypeMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +25,15 @@ import java.util.Scanner;
 @Service
 public class AiChatService {
 
-    @Value("${deepseek.api.url}")
+    private static final Logger log = LoggerFactory.getLogger(AiChatService.class);
+
+    @Value("${ark.api.url}")
     private String apiUrl;
 
-    @Value("${deepseek.api.key}")
+    @Value("${ark.api.key}")
     private String apiKey;
 
-    @Value("${deepseek.api.model}")
+    @Value("${ark.api.model}")
     private String model;
 
     @Resource
@@ -44,7 +48,22 @@ public class AiChatService {
 
     @PostConstruct
     public void init() {
+        // 校验配置
+        if (apiUrl == null || apiUrl.trim().isEmpty()) {
+            log.error("❌ ark.api.url 未配置！AI 客服将无法工作");
+        }
+        if (apiKey == null || apiKey.trim().isEmpty() || apiKey.contains("your-")) {
+            log.error("❌ ark.api.key 未配置或使用了占位符！AI 客服将无法工作");
+        }
+        if (model == null || model.trim().isEmpty()) {
+            log.error("❌ ark.api.model 未配置！AI 客服将无法工作");
+        }
+        log.info("AI 客服配置: url={}, model={}, key={}...", apiUrl, model,
+                apiKey != null && apiKey.length() > 8 ? apiKey.substring(0, 8) : "null");
+
         systemPrompt = buildSystemPrompt();
+        log.info("AI 客服系统提示词已构建，包含 {} 个分类、{} 个商品",
+                typeMapper.getAllTypes().size(), goodsMapper.getAllGoods().size());
     }
 
     /**
@@ -145,16 +164,24 @@ public class AiChatService {
                 try (Scanner scanner = new Scanner(conn.getInputStream(), "UTF-8")) {
                     String response = scanner.useDelimiter("\\A").next();
                     JsonNode root = mapper.readTree(response);
-                    return root.path("choices").get(0).path("message").path("content").asText();
+                    String content = root.path("choices").get(0).path("message").path("content").asText();
+                    if (content == null || content.isEmpty()) {
+                        log.warn("AI 返回空内容，完整响应: {}", response.substring(0, Math.min(300, response.length())));
+                        return "抱歉，我暂时没想到怎么回答，请换个问题试试~ 😊";
+                    }
+                    return content;
                 }
             } else {
+                String errorBody = "";
                 try (Scanner scanner = new Scanner(conn.getErrorStream(), "UTF-8")) {
-                    String err = scanner.useDelimiter("\\A").next();
-                    return "抱歉，AI服务暂时不可用，请稍后再试。";
-                }
+                    errorBody = scanner.useDelimiter("\\A").next();
+                } catch (Exception ignored) {}
+                log.error("AI API 返回非 200 状态码: {}, 响应体: {}", code,
+                        errorBody.length() > 500 ? errorBody.substring(0, 500) : errorBody);
+                return "抱歉，AI服务暂时不可用，请稍后再试。";
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("AI 客服请求异常: {}", e.getMessage(), e);
             return "抱歉，我暂时无法回答，请稍后再试。😢";
         }
     }

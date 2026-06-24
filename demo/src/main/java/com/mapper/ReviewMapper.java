@@ -9,6 +9,10 @@ import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
+
+/**
+ * ReviewMapper接口，MyBatis Plus数据访问层。
+ */
 @Mapper
 public interface ReviewMapper {
 

@@ -7,10 +7,17 @@ import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
+
+/**
+ * OrderItemMapper接口，MyBatis Plus数据访问层。
+ */
 @Mapper
 public interface OrderItemMapper {
     @Insert("insert into orderitem (price, amount, goods_id, order_id) " +
             "values (#{price}, #{amount}, #{goodsId}, #{orderId})")
+    /**
+     * 新增数据。
+     */
     public void addOrderItem(OrderItem orderItem);
 
     @Select("select oi.*, g.name as goodsName, g.cover from orderitem oi " +

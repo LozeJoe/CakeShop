@@ -5,7 +5,9 @@ import com.javaBean.PageResult;
 import com.javaBean.RiderMessage;
 import com.javaBean.User;
 import com.service.OrderService;
+import com.mapper.UserMapper;
 import com.service.RiderService;
+import com.service.UserService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,9 +18,22 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * 骑手控制器，处理骑手注册、登录、接单、配送及聊天等骑手端相关请求。
+ */
 @RequestMapping("/rider")
 @Controller
 public class RiderController {
+	// 重定向 /rider -> /rider/index
+	@RequestMapping("")
+	/**
+	 * 执行对应业务操作。
+	 */
+	public String root() {
+		return "redirect:/rider/index";
+	}
+
 
     @Resource
     private RiderService riderService;
@@ -29,13 +44,25 @@ public class RiderController {
     @Resource
     private com.service.RiderChatService riderChatService;
 
+    @Resource
+    private UserMapper userMapper;
+
+    @Resource
+    private UserService userService;
+
     @RequestMapping("/login")
+    /**
+     * 显示登录页面。
+     */
     public ModelAndView loginPage() {
         // Redirect to unified login page with rider tab active
         return new ModelAndView("redirect:/user/login?role=rider");
     }
 
     @RequestMapping("/doLogin")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView doLogin(@RequestParam("username") String username,
                                  @RequestParam("password") String password,
                                  HttpServletRequest request) {
@@ -55,6 +82,9 @@ public class RiderController {
     }
 
     @RequestMapping("/logout")
+    /**
+     * 处理用户退出登录。
+     */
     public ModelAndView logout(HttpServletRequest request) {
         request.getSession().removeAttribute("rider");
         request.getSession().removeAttribute("user");
@@ -62,6 +92,9 @@ public class RiderController {
     }
 
     @RequestMapping("/index")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView index(@RequestParam(value = "tab", defaultValue = "pending") String tab,
                                @RequestParam(value = "page", defaultValue = "1") int page,
                                HttpServletRequest request) {
@@ -98,6 +131,9 @@ public class RiderController {
     }
 
     @RequestMapping("/accept")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView accept(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -106,6 +142,9 @@ public class RiderController {
     }
 
     @RequestMapping("/startDelivery")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView startDelivery(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -114,6 +153,9 @@ public class RiderController {
     }
 
     @RequestMapping("/complete")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView complete(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -125,6 +167,9 @@ public class RiderController {
     }
 
     @RequestMapping("/orderDetail")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView orderDetail(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -139,6 +184,9 @@ public class RiderController {
     }
 
     @RequestMapping("/profile")
+    /**
+     * 显示用户个人中心页面。
+     */
     public ModelAndView profile(HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -157,6 +205,9 @@ public class RiderController {
     }
 
     @RequestMapping("/editProfile")
+    /**
+     * 更新数据。
+     */
     public ModelAndView editProfile(HttpServletRequest request) {
         User session = (User) request.getSession().getAttribute("rider");
         if (session == null) return new ModelAndView("redirect:/rider/login");
@@ -183,6 +234,9 @@ public class RiderController {
     }
 
     @RequestMapping("/messages")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView messages(@RequestParam(value = "type", defaultValue = "all") String type,
                                   @RequestParam(value = "page", defaultValue = "1") int page,
                                   HttpServletRequest request) {
@@ -204,6 +258,9 @@ public class RiderController {
     }
 
     @RequestMapping("/markRead")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView markRead(@RequestParam(value = "messageId", defaultValue = "0") int messageId,
                                   HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
@@ -218,6 +275,9 @@ public class RiderController {
 
     // ═══════════════ 骑手-用户对话 ═══════════════
     @RequestMapping("/chat")
+    /**
+     * 处理AI聊天请求。
+     */
     public ModelAndView chat(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -232,6 +292,9 @@ public class RiderController {
     }
 
     @RequestMapping("/chatSend")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView chatSend(@RequestParam("orderId") String orderId,
                                   @RequestParam("content") String content,
                                   HttpServletRequest request) {
@@ -244,6 +307,9 @@ public class RiderController {
     }
 
     @RequestMapping("/income")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView income(HttpServletRequest request) {
         User rider = (User) request.getSession().getAttribute("rider");
         if (rider == null) return new ModelAndView("redirect:/rider/login");
@@ -264,4 +330,80 @@ public class RiderController {
         mv.addObject("dailyStats", dailyStats);
         return mv;
     }
+
+    // ===== 骑手注册 =====
+    @RequestMapping("/register")
+    /**
+     * 显示注册页面。
+     */
+    public ModelAndView registerPage(HttpServletRequest request) {
+        // 如果已登录骑手，重定向到骑手首页
+        User rider = (User) request.getSession().getAttribute("rider");
+        if (rider != null) {
+            return new ModelAndView("redirect:/rider/index");
+        }
+        return new ModelAndView("rider/register");
+    }
+
+    @RequestMapping(value = "/register", method = org.springframework.web.bind.annotation.RequestMethod.POST)
+    /**
+     * 执行对应业务操作。
+     */
+    public ModelAndView doRegister(HttpServletRequest request) {
+        ModelAndView mv = new ModelAndView("rider/register");
+        try {
+            String username = request.getParameter("username");
+            String password = request.getParameter("password");
+            String confirmPassword = request.getParameter("confirmPassword");
+            String name = request.getParameter("name");
+            String phone = request.getParameter("phone");
+            String email = request.getParameter("email");
+
+            // 验证
+            if (username == null || username.trim().length() < 2) {
+                mv.addObject("error", "骑手账号至少2个字符");
+                return mv;
+            }
+            if (password == null || password.length() < 8) {
+                mv.addObject("error", "密码至少8位");
+                return mv;
+            }
+            if (!password.equals(confirmPassword)) {
+                mv.addObject("error", "两次密码不一致");
+                return mv;
+            }
+            if (name == null || name.trim().isEmpty()) {
+                mv.addObject("error", "请输入真实姓名");
+                return mv;
+            }
+            if (phone == null || !phone.matches("1\\d{10}")) {
+                mv.addObject("error", "手机号必须为11位数字且以1开头");
+                return mv;
+            }
+
+            // 检查用户名是否已存在
+            User exist = userMapper.getUserByName(username.trim());
+            if (exist != null) {
+                mv.addObject("error", "该账号已被注册");
+                return mv;
+            }
+
+            // 注册骑手 (isadmin="2", isvalidate="1" 自动通过)
+            userMapper.register(username.trim(), userService.encodePassword(password),
+                    name.trim(), phone.trim(), "",
+                    email != null ? email.trim() : "",
+                    "2");
+            // 设置为已审核
+            User newUser = userMapper.getUserByName(username.trim());
+            if (newUser != null) {
+                userMapper.verifyUser(newUser.getId());
+            }
+
+            mv.addObject("success", "骑手注册成功！请返回登录页面登录。");
+        } catch (Exception e) {
+            mv.addObject("error", "注册失败：" + e.getMessage());
+        }
+        return mv;
+    }
+
 }

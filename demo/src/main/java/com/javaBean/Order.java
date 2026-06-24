@@ -2,6 +2,10 @@ package com.javaBean;
 
 import lombok.Data;
 
+
+/**
+ * 订单实体类。
+ */
 @Data
 public class Order {
     String id;

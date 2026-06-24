@@ -22,6 +22,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 
+
+/**
+ * 管理员控制器，处理后台管理相关请求，包括用户管理、商品管理、订单管理、分类管理、系统设置、评论审核和数据备份等功能。
+ */
 @RequestMapping("/admin")
 @Controller
 public class AdminController {
@@ -59,6 +63,9 @@ public class AdminController {
     }
 
     @RequestMapping("/index")
+    /**
+     * 显示管理后台首页仪表盘。
+     */
     public ModelAndView index(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -92,6 +99,9 @@ public class AdminController {
 
     // ==================== 用户管理 ====================
     @RequestMapping("/users")
+    /**
+     * 分页显示用户列表。
+     */
     public ModelAndView userList(@RequestParam(value = "page", defaultValue = "1") int page,
                                  @RequestParam(value = "pageSize", defaultValue = "10") int pageSize,
                                  @RequestParam(value = "unverified", defaultValue = "false") boolean unverified,
@@ -134,7 +144,7 @@ public class AdminController {
             modelAndView.addObject("filterType", type);
             modelAndView.addObject("sidebarActive", "users");
             modelAndView.addObject("pageTitle", pageTitle);
-            modelAndView.addObject("headerExtra", "<a href='/admin/userEdit' class='btn btn-primary'>添加用户</a>");
+            
             modelAndView.setViewName("admin/userList");
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,6 +155,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userVerify")
+    /**
+     * 审核通过指定用户。
+     */
     public ModelAndView userVerify(@RequestParam("id") int id, HttpServletRequest request) {
         HttpSession session = request.getSession();
         User admin = (User) session.getAttribute("user");
@@ -154,6 +167,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userFreeze")
+    /**
+     * 冻结指定用户账号。
+     */
     public ModelAndView userFreeze(@RequestParam("id") int id, HttpServletRequest request) {
         HttpSession session = request.getSession();
         User admin = (User) session.getAttribute("user");
@@ -163,6 +179,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userUnfreeze")
+    /**
+     * 解冻指定用户账号。
+     */
     public ModelAndView userUnfreeze(@RequestParam("id") int id, HttpServletRequest request) {
         HttpSession session = request.getSession();
         User admin = (User) session.getAttribute("user");
@@ -172,6 +191,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userSetAdmin")
+    /**
+     * 设置用户管理员角色。
+     */
     public ModelAndView userSetAdmin(@RequestParam("id") int id, @RequestParam("isadmin") String isadmin, HttpServletRequest request) {
         HttpSession session = request.getSession();
         User admin = (User) session.getAttribute("user");
@@ -181,6 +203,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userEdit")
+    /**
+     * 显示用户编辑页面。
+     */
     public ModelAndView userEdit(@RequestParam(value = "id", required = false) Integer id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -209,6 +234,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userSave")
+    /**
+     * 保存用户信息。
+     */
     public ModelAndView userSave(@Valid User user, BindingResult bindingResult, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -280,6 +308,9 @@ public class AdminController {
     }
 
     @RequestMapping("/userDelete")
+    /**
+     * 删除指定用户。
+     */
     public ModelAndView userDelete(@RequestParam("id") int id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -303,6 +334,9 @@ public class AdminController {
 
     // ==================== 商品管理 ====================
     @RequestMapping("/goods")
+    /**
+     * 分页显示商品列表。
+     */
     public ModelAndView goodsList(@RequestParam(value = "page", defaultValue = "1") int page,
                                   @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
                                   HttpServletRequest request) {
@@ -336,6 +370,9 @@ public class AdminController {
     }
 
     @RequestMapping("/goodsEdit")
+    /**
+     * 显示商品编辑页面。
+     */
     public ModelAndView goodsEdit(@RequestParam(value = "id", required = false) Integer id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -367,6 +404,9 @@ public class AdminController {
     }
 
     @RequestMapping("/goodsSave")
+    /**
+     * 保存商品信息及上传图片。
+     */
     public ModelAndView goodsSave(@Valid Goods goods, BindingResult bindingResult,
                                   @RequestParam(value = "coverFile", required = false) MultipartFile coverFile,
                                   @RequestParam(value = "image1File", required = false) MultipartFile image1File,
@@ -462,6 +502,9 @@ public class AdminController {
     }
 
     @RequestMapping("/goodsDelete")
+    /**
+     * 删除指定商品。
+     */
     public ModelAndView goodsDelete(@RequestParam("id") int id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -484,6 +527,9 @@ public class AdminController {
     }
 
     @RequestMapping("/goodsOnShelf")
+    /**
+     * 将商品上架。
+     */
     public ModelAndView goodsOnShelf(@RequestParam("id") int id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -504,6 +550,9 @@ public class AdminController {
     }
 
     @RequestMapping("/goodsOffShelf")
+    /**
+     * 将商品下架。
+     */
     public ModelAndView goodsOffShelf(@RequestParam("id") int id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -525,6 +574,9 @@ public class AdminController {
 
     // ==================== 订单管理 ====================
     @RequestMapping("/orders")
+    /**
+     * 分页显示订单列表。
+     */
     public ModelAndView orderList(@RequestParam(value = "page", defaultValue = "1") int page,
                                   @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
                                   @RequestParam(value = "status", defaultValue = "0") int status,
@@ -562,6 +614,9 @@ public class AdminController {
     }
 
     @RequestMapping("/orderDetail")
+    /**
+     * 显示订单详细信息。
+     */
     public ModelAndView orderDetail(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -595,6 +650,9 @@ public class AdminController {
     }
 
     @RequestMapping("/orderUpdateStatus")
+    /**
+     * 更新订单状态。
+     */
     public ModelAndView orderUpdateStatus(@RequestParam("orderId") String orderId, 
                                           @RequestParam("status") int status,
                                           HttpServletRequest request) {
@@ -619,6 +677,9 @@ public class AdminController {
     }
 
     @RequestMapping("/orderSetCommission")
+    /**
+     * 设置订单佣金。
+     */
     public ModelAndView orderSetCommission(@RequestParam("orderId") String orderId,
                                            @RequestParam("commission") double commission,
                                            HttpServletRequest request) {
@@ -645,6 +706,9 @@ public class AdminController {
 
     // ==================== 分类管理 ====================
     @RequestMapping("/types")
+    /**
+     * 显示分类列表。
+     */
     public ModelAndView typeList(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -675,6 +739,9 @@ public class AdminController {
     }
 
     @RequestMapping("/typeEdit")
+    /**
+     * 显示分类编辑页面。
+     */
     public ModelAndView typeEdit(@RequestParam(value = "id", required = false) Integer id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -703,6 +770,9 @@ public class AdminController {
     }
 
     @RequestMapping("/typeSave")
+    /**
+     * 保存分类信息。
+     */
     public ModelAndView typeSave(@Valid Type type, BindingResult bindingResult, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -737,6 +807,9 @@ public class AdminController {
     }
 
     @RequestMapping("/typeDelete")
+    /**
+     * 删除指定分类。
+     */
     public ModelAndView typeDelete(@RequestParam("id") int id, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -760,6 +833,9 @@ public class AdminController {
 
     // ==================== 操作日志 ====================
     @RequestMapping("/logs")
+    /**
+     * 显示操作日志列表。
+     */
     public ModelAndView logs(@RequestParam(value = "page", defaultValue = "1") int page,
                              @RequestParam(value = "pageSize", defaultValue = "15") int pageSize,
                              HttpServletRequest request) {
@@ -793,6 +869,9 @@ public class AdminController {
 
     // ==================== 系统管理 ====================
     @RequestMapping("/settings")
+    /**
+     * 显示系统设置页面。
+     */
     public ModelAndView systemConfig(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -820,6 +899,9 @@ public class AdminController {
     }
 
     @RequestMapping("/saveSettings")
+    /**
+     * 保存系统配置。
+     */
     public ModelAndView saveSystemConfig(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -856,6 +938,9 @@ public class AdminController {
 
     // ==================== 评论审核 ====================
     @RequestMapping("/reviewAudit")
+    /**
+     * 显示待审核评论列表。
+     */
     public ModelAndView reviewAudit(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -878,12 +963,18 @@ public class AdminController {
     }
 
     @RequestMapping("/reviewApprove")
+    /**
+     * 审核通过评论。
+     */
     public ModelAndView reviewApprove(@RequestParam("id") int id, HttpServletRequest request) {
         reviewMapper.approveReview(id);
         return new ModelAndView("redirect:/admin/reviewAudit");
     }
 
     @RequestMapping("/reviewReject")
+    /**
+     * 驳回评论。
+     */
     public ModelAndView reviewReject(@RequestParam("id") int id, HttpServletRequest request) {
         reviewMapper.rejectReview(id);
         return new ModelAndView("redirect:/admin/reviewAudit");
@@ -891,6 +982,9 @@ public class AdminController {
 
     // ==================== 数据备份 ====================
     @RequestMapping("/backup")
+    /**
+     * 执行数据库备份。
+     */
     public void backup(HttpServletRequest request, HttpServletResponse response) throws Exception {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
@@ -934,4 +1028,5 @@ public class AdminController {
             }
         }
     }
+
 }

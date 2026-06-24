@@ -7,12 +7,19 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 
+
+/**
+ * 骑手聊天服务接口，定义骑手与用户聊天相关业务方法。
+ */
 @Service
 public class RiderChatService {
 
     @Resource
     private RiderChatMapper riderChatMapper;
 
+    /**
+     * 发送聊天消息。
+     */
     public void sendMessage(String orderId, String sender, String senderName, String content) {
         RiderChat chat = new RiderChat();
         chat.setOrderId(orderId);

@@ -12,6 +12,10 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * 订单服务实现类，提供订单创建、状态更新等业务逻辑实现。
+ */
 @Service
 public class OrderServiceImpl implements OrderService {
 
@@ -19,6 +23,9 @@ public class OrderServiceImpl implements OrderService {
     // 状态常量
     public static final int STATUS_UNPAID    = 1;  // 待支付
     public static final int STATUS_PAID      = 2;  // 待配送/已支付
+    /**
+     * 执行对应业务操作。
+     */
     public static final int STATUS_PICKUP    = 3;  // 待取货(骑手已接单)
     public static final int STATUS_DELIVERING= 4;  // 配送中
     public static final int STATUS_DELIVERED = 5;  // 已送达
@@ -92,10 +99,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
+    /**
+     * 新增数据。
+     */
     public Order createOrderFromCart(User user, List<Cart> cartList, String name, String phone, String address, int paytype) {
         return createOrderFromCart(user, cartList, name, phone, address, paytype, null, 0, 0);
     }
 
+    /**
+     * 新增数据。
+     */
     public Order createOrderFromCart(User user, List<Cart> cartList, String name, String phone, String address, int paytype, String deliveryTime, double latitude, double longitude) {
         if (cartList == null || cartList.isEmpty()) {
             throw new RuntimeException("购物车为空，无法创建订单");
@@ -153,16 +166,25 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.setReview(orderId, Math.max(1, Math.min(5, rating)), content != null ? content : "");
     }
 
+    /**
+     * 新增数据。
+     */
     @Override
     public void addOrder(Order order) {
         orderMapper.addOrder(order);
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public List<Order> getOrdersByUserId(int userId) {
         return orderMapper.getOrdersByUserId(userId);
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public PageResult<Order> getOrdersByUserIdPage(int userId, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -176,6 +198,9 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.getOrderById(id);
     }
 
+    /**
+     * 更新数据。
+     */
     @Override
     public void updateOrderStatus(String id, int newStatus) {
         Order order = orderMapper.getOrderById(id);
@@ -187,6 +212,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
+    /**
+     * 取消指定订单。
+     */
     public void cancelOrder(String id) {
         Order order = orderMapper.getOrderById(id);
         if (order == null) throw new RuntimeException("订单不存在");
@@ -232,6 +260,9 @@ public class OrderServiceImpl implements OrderService {
         orderMapper.completeDelivery(orderId, riderId, income);
     }
 
+    /**
+     * 新增数据。
+     */
     @Override
     public void addOrderItem(OrderItem orderItem) {
         orderItemMapper.addOrderItem(orderItem);
@@ -242,11 +273,17 @@ public class OrderServiceImpl implements OrderService {
         return orderItemMapper.getOrderItemsByOrderId(orderId);
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public List<Order> getAllOrders() {
         return orderMapper.getAllOrders();
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public PageResult<Order> getOrdersByPage(int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -260,6 +297,9 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.getOrderCount();
     }
 
+    /**
+     * 查询数据。
+     */
     @Override
     public PageResult<Order> searchOrdersByUserId(int userId, String keyword, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -268,11 +308,17 @@ public class OrderServiceImpl implements OrderService {
         return new PageResult<>(data, pageNum, pageSize, totalCount);
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public java.util.List<java.util.Map<String, Object>> getOrderStatusDistribution() {
         return orderMapper.getOrderStatusDistribution();
     }
 
+    /**
+     * 分页获取筛选后的订单列表。
+     */
     @Override
     public PageResult<Order> getFilteredOrdersPage(int status, String keyword, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -293,6 +339,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public int getCompletedOrderCount() { return orderMapper.getCompletedOrderCount(); }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public int getPendingOrderCount() { return orderMapper.getPendingOrderCount(); }
 
@@ -314,6 +363,9 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public java.util.List<java.util.Map<String, Object>> getTopGoods() { return orderMapper.getTopGoods(); }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public int getOverduePaymentCount() {
         return (int) orderMapper.getOverdueCandidates().stream()
@@ -321,6 +373,9 @@ public class OrderServiceImpl implements OrderService {
             .count();
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public int getOverdueDeliveryCount() {
         return (int) orderMapper.getOverdueCandidates().stream()
@@ -328,6 +383,9 @@ public class OrderServiceImpl implements OrderService {
             .count();
     }
 
+    /**
+     * 获取逾期订单ID集合。
+     */
     @Override
     public java.util.Set<String> getOverdueOrderIds() {
         java.util.Set<String> ids = new java.util.HashSet<>();

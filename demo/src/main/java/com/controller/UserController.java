@@ -20,6 +20,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
+
+/**
+ * 用户控制器，处理用户登录、注册、个人信息管理及密码修改等前端用户相关请求。
+ */
 @RequestMapping("/user")
 @Controller
 public class UserController {
@@ -34,6 +38,9 @@ public class UserController {
     private TypeService typeService;
 
     @RequestMapping(value = "/login", method = RequestMethod.GET)
+    /**
+     * 显示登录页面。
+     */
     public ModelAndView loginPage(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         
@@ -62,6 +69,9 @@ public class UserController {
     }
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
+    /**
+     * 处理用户登录请求。
+     */
     public ModelAndView login(HttpServletRequest request,
                                @RequestParam(value = "page", defaultValue = "1") int page,
                                @RequestParam(value = "pageSize", defaultValue = "8") int pageSize){
@@ -88,7 +98,15 @@ public class UserController {
 
                 HttpSession session = request.getSession();
                 session.setAttribute("user", user);
-                modelAndView.setViewName("redirect:/goods/goodList");
+                // Role-based redirect
+                String role = request.getParameter("role");
+                if ("rider".equals(role)) {
+                    modelAndView.setViewName("redirect:/rider/index");
+                } else if ("admin".equals(role)) {
+                    modelAndView.setViewName("redirect:/admin/index");
+                } else {
+                    modelAndView.setViewName("redirect:/goods/goodList");
+                }
             } else {
                 modelAndView.addObject("error", "用户名或密码错误");
                 modelAndView.setViewName("login");
@@ -103,6 +121,9 @@ public class UserController {
     }
 
     @RequestMapping("/loginout")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView loginout(HttpServletRequest request) {
         // 清除Session中的用户信息
         HttpSession session = request.getSession();
@@ -113,12 +134,18 @@ public class UserController {
     }
 
     @RequestMapping("/logout")
+    /**
+     * 处理用户退出登录。
+     */
     public ModelAndView logout(HttpServletRequest request) {
         // Alias for /loginout — consistent URL naming
         return loginout(request);
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.GET)
+    /**
+     * 显示注册页面。
+     */
     public ModelAndView registerPage(HttpServletRequest request) {
         // Redirect logged-in users to home page
         HttpSession session = request.getSession(false);
@@ -129,6 +156,9 @@ public class UserController {
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
+    /**
+     * 处理用户注册请求。
+     */
     public ModelAndView register(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -232,6 +262,9 @@ public class UserController {
     }
 
     @RequestMapping("/profile")
+    /**
+     * 显示用户个人中心页面。
+     */
     public ModelAndView profile(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -255,6 +288,9 @@ public class UserController {
     }
 
     @RequestMapping("/editProfile")
+    /**
+     * 更新数据。
+     */
     public ModelAndView editProfile(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -333,4 +369,6 @@ public class UserController {
         }
         return modelAndView;
     }
+
+
 }

@@ -39,6 +39,9 @@ public class PageResult<T> {
         this.currentPage = currentPage;
     }
 
+    /**
+     * 查询获取数据。
+     */
     public int getPageSize() {
         return pageSize;
     }

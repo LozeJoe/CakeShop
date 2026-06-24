@@ -16,6 +16,10 @@ import org.springframework.web.servlet.ModelAndView;
 import java.net.URLEncoder;
 import java.util.List;
 
+
+/**
+ * 商品控制器，处理商品列表展示、商品详情查看及商品搜索等前端展示相关请求。
+ */
 @RequestMapping("/goods")
 @Controller
 public class GoodsController {
@@ -36,6 +40,9 @@ public class GoodsController {
     private FavoriteService favoriteService;
 
     @RequestMapping("/goodList")
+    /**
+     * 分页显示商品列表。
+     */
     public ModelAndView goodList(@RequestParam(value = "typeid", defaultValue = "0") int typeId,
                                   @RequestParam(value = "page", defaultValue = "1") int page,
                                   @RequestParam(value = "pageSize", defaultValue = "8") int pageSize,
@@ -70,6 +77,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/detail")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView detail(@RequestParam("id") int id,
                                @RequestParam(value = "msg", required = false) String msg,
                                HttpServletRequest request,
@@ -127,6 +137,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/search")
+    /**
+     * 按关键词搜索商品。
+     */
     public ModelAndView search(@RequestParam("keyword") String keyword,
                                @RequestParam(value = "page", defaultValue = "1") int page,
                                @RequestParam(value = "pageSize", defaultValue = "8") int pageSize) {
@@ -161,6 +174,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/addToCart")
+    /**
+     * 添加商品到购物车。
+     */
     public ModelAndView addToCart(@RequestParam("goodId") int goodId, 
                                    @RequestParam(value = "amount", defaultValue = "1") int amount,
                                    HttpServletRequest request) {
@@ -216,6 +232,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/topSell")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView topSell(@RequestParam(value = "page", defaultValue = "1") int page,
                                  @RequestParam(value = "pageSize", defaultValue = "8") int pageSize) {
         ModelAndView modelAndView = new ModelAndView();
@@ -241,6 +260,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/newGoods")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView newGoods(@RequestParam(value = "page", defaultValue = "1") int page,
                                   @RequestParam(value = "pageSize", defaultValue = "8") int pageSize) {
         ModelAndView modelAndView = new ModelAndView();
@@ -266,6 +288,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/favor")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView favor(@RequestParam("goodsId") int goodsId,
                                HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
@@ -294,6 +319,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/unfavor")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView unfavor(@RequestParam("goodsId") int goodsId,
                                  HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
@@ -316,6 +344,9 @@ public class GoodsController {
     }
 
     @RequestMapping("/myFavorites")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView myFavorites(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {

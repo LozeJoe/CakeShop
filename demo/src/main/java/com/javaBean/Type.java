@@ -4,6 +4,10 @@ import lombok.Data;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
+
+/**
+ * 商品分类实体类。
+ */
 @Data
 public class Type {
     int id;

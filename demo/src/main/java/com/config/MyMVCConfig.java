@@ -18,6 +18,9 @@ import java.util.Locale;
 public class MyMVCConfig implements WebMvcConfigurer {
 
     @Bean
+    /**
+     * 执行对应业务操作。
+     */
     public LocaleResolver localeResolver() {
         CookieLocaleResolver resolver = new CookieLocaleResolver();
         resolver.setDefaultLocale(Locale.SIMPLIFIED_CHINESE);
@@ -26,6 +29,9 @@ public class MyMVCConfig implements WebMvcConfigurer {
     }
 
     @Bean
+    /**
+     * 执行对应业务操作。
+     */
     public LocaleChangeInterceptor localeChangeInterceptor() {
         LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
         interceptor.setParamName("lang");
@@ -48,6 +54,9 @@ public class MyMVCConfig implements WebMvcConfigurer {
         registry.addViewController("/user/logout").setViewName("redirect:/user/loginout");
     }
 
+    /**
+     * 注册拦截器。
+     */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         // 多语言切换拦截器

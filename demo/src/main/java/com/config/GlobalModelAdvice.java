@@ -30,6 +30,9 @@ public class GlobalModelAdvice {
     private SystemConfigService systemConfigService;
 
     @ModelAttribute("count")
+    /**
+     * 新增数据记录。
+     */
     public Integer addCartCount(HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
@@ -42,31 +45,49 @@ public class GlobalModelAdvice {
     }
 
     @ModelAttribute("siteName")
+    /**
+     * 执行对应业务操作。
+     */
     public String siteName() {
         return systemConfigService.get("site_name");
     }
 
     @ModelAttribute("heroTitle")
+    /**
+     * 执行对应业务操作。
+     */
     public String heroTitle() {
         return systemConfigService.get("hero_title");
     }
 
     @ModelAttribute("heroSubtitle")
+    /**
+     * 执行对应业务操作。
+     */
     public String heroSubtitle() {
         return systemConfigService.get("hero_subtitle");
     }
 
     @ModelAttribute("pageSize")
+    /**
+     * 执行对应业务操作。
+     */
     public int pageSize() {
         return systemConfigService.getInt("page_size", 8);
     }
 
     @ModelAttribute("copyright")
+    /**
+     * 执行对应业务操作。
+     */
     public String copyright() {
         return systemConfigService.get("copyright");
     }
 
     @ModelAttribute("typelist")
+    /**
+     * 执行对应业务操作。
+     */
     public List<Type> typelist() {
         return typeService.getAllTypes();
     }

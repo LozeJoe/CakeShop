@@ -6,6 +6,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+
+/**
+ * 商品实体类。
+ */
 @Data
 public class Goods {
     int id;

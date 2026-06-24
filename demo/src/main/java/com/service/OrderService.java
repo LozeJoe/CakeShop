@@ -8,6 +8,10 @@ import com.javaBean.User;
 
 import java.util.List;
 
+
+/**
+ * 订单服务接口，定义订单创建、状态更新等业务方法。
+ */
 public interface OrderService {
     void addOrder(Order order);
     List<Order> getOrdersByUserId(int userId);

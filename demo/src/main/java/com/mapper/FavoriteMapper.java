@@ -9,6 +9,10 @@ import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
+
+/**
+ * FavoriteMapper接口，MyBatis Plus数据访问层。
+ */
 @Mapper
 public interface FavoriteMapper {
 

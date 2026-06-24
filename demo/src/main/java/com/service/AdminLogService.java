@@ -11,6 +11,10 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * 管理员日志服务接口，定义操作日志的分页查询方法。
+ */
 @Service
 @EnableScheduling
 public class AdminLogService {
@@ -18,6 +22,9 @@ public class AdminLogService {
     @Resource
     private AdminLogMapper adminLogMapper;
 
+    /**
+     * 执行对应业务操作。
+     */
     public void log(String adminName, String action, String target, String ip) {
         AdminLog log = new AdminLog();
         log.setAdminName(adminName);
@@ -35,6 +42,9 @@ public class AdminLogService {
     }
 
     @Scheduled(cron = "0 0 3 * * ?") // 每天凌晨3点
+    /**
+     * 执行对应业务操作。
+     */
     public void cleanOldLogs() {
         adminLogMapper.deleteOldLogs(30);
     }

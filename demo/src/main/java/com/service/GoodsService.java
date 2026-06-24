@@ -4,6 +4,10 @@ import com.javaBean.Goods;
 import com.javaBean.PageResult;
 import java.util.List;
 
+
+/**
+ * 商品服务接口，定义商品查询、添加、更新、删除等业务方法。
+ */
 public interface GoodsService {
     List<Goods> getAllGoods();
     PageResult<Goods> getGoodsByPage(int pageNum, int pageSize);

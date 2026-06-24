@@ -13,6 +13,9 @@ import javax.servlet.http.HttpSession;
  */
 public class AdminInterceptor implements HandlerInterceptor {
 
+    /**
+     * 拦截请求进行前置处理。
+     */
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         HttpSession session = request.getSession(false);

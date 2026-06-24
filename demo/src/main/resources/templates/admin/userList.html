@@ -20,6 +20,10 @@
         <div th:replace="admin/commons::sidebar"></div>
         <div class="main-content">
             <header th:replace="admin/commons::header"></header>
+            <div style="margin-bottom:16px;">
+                <a th:href="@{/admin/userEdit(id=0)}" class="btn btn-primary" th:text="#{user.addUser}">添加用户</a>
+            </div>
+
 
             <!-- 标签切换：用户/骑手 -->
             <div class="tab-bar">
@@ -50,6 +54,7 @@
                             <td>
                                 <div class="action-group">
                                     <a th:if="${user.isvalidate != '1' and user.isadmin != '2'}" th:href="@{/admin/userVerify(id=${user.id})}" class="btn btn-sm btn-success" th:text="#{user.approve}">审核</a>
+                            <a th:if="${user.isadmin == '0'}" th:href="@{/admin/userSetAdmin(id=${user.id}, isadmin='2')}" class="btn btn-sm btn-outline-info" onclick="return confirm('确认设为骑手？')">设为骑手</a>
                                     <a th:href="@{/admin/userEdit(id=${user.id})}" class="btn btn-sm btn-info" th:text="#{user.edit}">修改</a>
                                     <a th:if="${user.isadmin != '2' and user.status != 1}" th:href="@{/admin/userFreeze(id=${user.id})}" class="btn btn-sm btn-warning" th:onclick="|return confirm('#{user.confirmFreeze}')|" th:text="#{user.freeze}">冻结</a>
                                     <a th:if="${user.isadmin != '2' and user.status == 1}" th:href="@{/admin/userUnfreeze(id=${user.id})}" class="btn btn-sm btn-success" th:text="#{user.unfreeze}">解冻</a>

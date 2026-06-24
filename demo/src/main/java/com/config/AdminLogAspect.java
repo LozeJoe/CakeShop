@@ -13,6 +13,10 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+
+/**
+ * 管理员操作日志切面，通过AOP记录管理员的关键操作日志。
+ */
 @Aspect
 @Component
 public class AdminLogAspect {
@@ -21,6 +25,9 @@ public class AdminLogAspect {
     private AdminLogService adminLogService;
 
     @Before("execution(* com.controller.AdminController.*(..)) && !execution(* com.controller.AdminController.index(..)) && !execution(* com.controller.AdminController.orders(..)) && !execution(* com.controller.AdminController.goods*(..)) && !execution(* com.controller.AdminController.types*(..)) && !execution(* com.controller.AdminController.users*(..)) && !execution(* com.controller.AdminController.settings*(..)) && !execution(* com.controller.AdminController.systemConfig*(..)) && !execution(* com.controller.AdminController.saveSystemConfig*(..)) && !execution(* com.controller.AdminController.orderDetail*(..))")
+    /**
+     * 执行对应业务操作。
+     */
     public void logAdminAction(JoinPoint joinPoint) {
         try {
             ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();

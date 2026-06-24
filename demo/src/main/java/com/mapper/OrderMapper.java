@@ -9,28 +9,50 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+
+/**
+ * OrderMapper接口，MyBatis Plus数据访问层。
+ */
 @Mapper
 public interface OrderMapper {
     @Insert("insert into `order` (id, total, amount, status, paytype, name, phone, address, datetime, delivery_time, latitude, longitude, commission, user_id) " +
             "values (#{id}, #{total}, #{amount}, #{status}, #{paytype}, #{name}, #{phone}, #{address}, #{datetime}, #{deliveryTime}, #{latitude}, #{longitude}, #{commission}, #{userId})")
+    /**
+     * 新增数据。
+     */
     public void addOrder(Order order);
 
     @Select("select * from `order` where user_id = #{userId} order by datetime desc")
+    /**
+     * 查询获取数据。
+     */
     public List<Order> getOrdersByUserId(int userId);
 
     @Select("select * from `order` where id = #{id}")
     public Order getOrderById(String id);
 
     @Update("update `order` set status = #{status} where id = #{id}")
+    /**
+     * 更新数据。
+     */
     public void updateOrderStatus(@Param("id") String id, @Param("status") int status);
     
     @Select("select * from `order` order by datetime desc")
+    /**
+     * 查询获取数据。
+     */
     public List<Order> getAllOrders();
     
     @Select("select * from `order` order by datetime desc limit #{offset}, #{pageSize}")
+    /**
+     * 查询获取数据。
+     */
     public List<Order> getOrdersByPage(@Param("offset") int offset, @Param("pageSize") int pageSize);
     
     @Select("select * from `order` where user_id = #{userId} order by datetime desc limit #{offset}, #{pageSize}")
+    /**
+     * 查询获取数据。
+     */
     public List<Order> getOrdersByUserIdPage(@Param("userId") int userId, @Param("offset") int offset, @Param("pageSize") int pageSize);
     
     @Select("select count(*) from `order`")
@@ -40,9 +62,15 @@ public interface OrderMapper {
     public int getOrderCountByUserId(@Param("userId") int userId);
     
     @Select("select * from `order` where user_id = #{userId} and (id = #{keyword} or name like CONCAT('%', #{keyword}, '%')) order by datetime desc limit #{offset}, #{pageSize}")
+    /**
+     * 查询数据。
+     */
     public List<Order> searchOrdersByUserId(@Param("userId") int userId, @Param("keyword") String keyword, @Param("offset") int offset, @Param("pageSize") int pageSize);
     
     @Select("select count(*) from `order` where user_id = #{userId} and (id = #{keyword} or name like CONCAT('%', #{keyword}, '%'))")
+    /**
+     * 查询数据。
+     */
     public int searchOrdersCountByUserId(@Param("userId") int userId, @Param("keyword") String keyword);
 
     @Select("<script>" +
@@ -51,6 +79,9 @@ public interface OrderMapper {
             "<if test='keyword != null and keyword != \"\"'> and (id like CONCAT('%', #{keyword}, '%') or name like CONCAT('%', #{keyword}, '%'))</if>" +
             " order by datetime desc limit #{offset}, #{pageSize}" +
             "</script>")
+    /**
+     * 查询获取数据。
+     */
     public List<Order> getFilteredOrders(@Param("status") int status, @Param("keyword") String keyword, @Param("offset") int offset, @Param("pageSize") int pageSize);
 
     @Select("<script>" +
@@ -58,9 +89,15 @@ public interface OrderMapper {
             "<if test='status > 0'> and status = #{status}</if>" +
             "<if test='keyword != null and keyword != \"\"'> and (id like CONCAT('%', #{keyword}, '%') or name like CONCAT('%', #{keyword}, '%'))</if>" +
             "</script>")
+    /**
+     * 查询获取数据。
+     */
     public int getFilteredOrdersCount(@Param("status") int status, @Param("keyword") String keyword);
 
     @Select("select status as `status`, count(*) as `cnt` from `order` group by status order by status")
+    /**
+     * 查询获取数据。
+     */
     public List<java.util.Map<String, Object>> getOrderStatusDistribution();
 
     // ===== 骑手相关 =====

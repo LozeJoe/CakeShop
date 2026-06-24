@@ -2,6 +2,10 @@ package com.javaBean;
 
 import lombok.Data;
 
+
+/**
+ * 骑手消息实体类。
+ */
 @Data
 public class RiderMessage {
     int id;

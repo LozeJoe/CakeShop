@@ -24,6 +24,7 @@
                         <div class="radio-group">
                             <label><input type="radio" name="isadmin" value="0" th:checked="${user == null || user.isadmin == '0'}"> 普通用户</label>
                             <label><input type="radio" name="isadmin" value="1" th:checked="${user != null && user.isadmin == '1'}"> 管理员</label>
+                            <label><input type="radio" name="isadmin" value="2" th:checked="${(user != null && user.isadmin == '2') or param.role == 'rider'}"> 🛵 骑手</label>
                         </div>
                     </div>
                     <div style="display:flex;gap:12px;margin-top:28px;">

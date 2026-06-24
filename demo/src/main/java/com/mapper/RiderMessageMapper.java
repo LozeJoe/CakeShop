@@ -5,6 +5,10 @@ import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
+
+/**
+ * RiderMessageMapper接口，MyBatis Plus数据访问层。
+ */
 @Mapper
 public interface RiderMessageMapper {
 

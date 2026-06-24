@@ -9,6 +9,10 @@ import org.apache.ibatis.annotations.Update;
 
 import java.util.List;
 
+
+/**
+ * RiderMapper接口，MyBatis Plus数据访问层。
+ */
 @Mapper
 public interface RiderMapper {
 

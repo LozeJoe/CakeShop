@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'骑手注册 — ' + ${siteName}">骑手注册</title>
+    <link rel="icon" type="image/jpeg" th:href="@{/images/logo.jpg}">
+    <link type="text/css" rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div style="text-align:center;padding:36px 0 0;">
+        <a th:href="@{/goods/goodList}" style="font-family:Georgia,'Times New Roman','Songti SC',serif;font-size:32px;font-weight:700;color:var(--chocolate);text-decoration:none;" th:text="${siteName}">CakeShop</a>
+    </div>
+
+    <div class="container">
+        <div class="form-container" style="max-width:460px;">
+            <h2>🛵 注册成为骑手</h2>
+            <p style="color:var(--caramel);font-size:14px;margin-bottom:28px;">加入 CakeShop 配送团队，自由接单赚钱</p>
+
+            <div th:if="${error != null}" class="alert alert-danger" th:text="${error}"></div>
+            <div th:if="${success != null}" class="alert alert-success" th:text="${success}"></div>
+
+            <form th:action="@{/rider/register}" method="post">
+                <div class="form-group">
+                    <input type="text" name="username" placeholder="骑手账号（2-50个字符）" required minlength="2" maxlength="50">
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" placeholder="密码（至少8位）" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <input type="password" name="confirmPassword" placeholder="确认密码" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <input type="text" name="name" placeholder="真实姓名" required>
+                </div>
+                <div class="form-group">
+                    <input type="tel" name="phone" placeholder="手机号（11位，1开头）" required maxlength="11" pattern="1\d{10}">
+                </div>
+                <div class="form-group">
+                    <input type="email" name="email" placeholder="电子邮箱">
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg">注 册 骑 手</button>
+            </form>
+
+            <p class="form-link">已有骑手账号？<a th:href="@{/user/login(role=rider)}">返回登录</a></p>
+        </div>
+    </div>
+</body>
+</html>

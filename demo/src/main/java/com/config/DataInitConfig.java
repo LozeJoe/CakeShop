@@ -15,6 +15,10 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.util.List;
 
+
+/**
+ * 数据初始化配置类，在应用启动时初始化默认数据。
+ */
 @Configuration
 public class DataInitConfig {
 
@@ -31,6 +35,9 @@ public class DataInitConfig {
     private DataSource dataSource;
 
     @javax.annotation.PostConstruct
+    /**
+     * 执行对应业务操作。
+     */
     public void initData() {
         migrateOrderTable();
         migrateUserTable();

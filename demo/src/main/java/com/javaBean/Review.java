@@ -5,6 +5,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+
+/**
+ * 评论实体类。
+ */
 @Data
 public class Review {
     int id;

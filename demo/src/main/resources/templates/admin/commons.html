@@ -38,7 +38,16 @@
 </nav>
 
 <header class="admin-header" th:fragment="header">
-    <h1 th:text="${pageTitle}"></h1>
+    <h1>
+        <span th:if="${filterType == 'rider'}" th:text="#{user.riderTitle}">🛵 骑手管理</span>
+        <span th:if="${filterType == 'goods'}" th:text="#{admin.goods}">商品管理</span>
+        <span th:if="${filterType == 'orders'}" th:text="#{admin.orders}">订单管理</span>
+        <span th:if="${filterType == 'types'}" th:text="#{admin.types}">分类管理</span>
+        <span th:if="${filterType == null and unverified}" th:text="#{user.pendingTitle}">⏳ 待审核用户</span>
+        <span th:if="${filterType == null and !unverified}" th:text="#{user.allTitle}">👥 全部用户</span>
+        <span th:if="${pageTitleKey != null}" th:text="#{${pageTitleKey}}">管理</span>
+        <span th:if="${pageTitleKey == null and filterType == null and unverified == null}" th:text="${pageTitle}">管理</span>
+    </h1>
     <div th:if="${headerExtra != null}" th:utext="${headerExtra}"></div>
 </header>
 </html>

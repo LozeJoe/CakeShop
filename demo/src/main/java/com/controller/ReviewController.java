@@ -13,6 +13,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.net.URLEncoder;
 
+
+/**
+ * 评论控制器，处理用户提交评论、查看评论等评价相关请求。
+ */
 @RequestMapping("/review")
 @Controller
 public class ReviewController {
@@ -29,6 +33,9 @@ public class ReviewController {
     }
 
     @RequestMapping("/add")
+    /**
+     * 新增数据。
+     */
     public ModelAndView addReview(@RequestParam("goodsId") int goodsId,
                                    @RequestParam("content") String content,
                                    @RequestParam(value = "rating", defaultValue = "5") int rating,
@@ -60,6 +67,9 @@ public class ReviewController {
     }
 
     @RequestMapping("/delete")
+    /**
+     * 删除数据。
+     */
     public ModelAndView deleteReview(@RequestParam("id") int id,
                                       @RequestParam("goodsId") int goodsId,
                                       HttpServletRequest request) {

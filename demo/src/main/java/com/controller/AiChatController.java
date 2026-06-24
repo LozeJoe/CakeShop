@@ -8,6 +8,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import javax.annotation.Resource;
 
+
+/**
+ * AI聊天控制器，处理用户与AI客服的聊天交互请求。
+ */
 @Controller
 public class AiChatController {
 
@@ -16,6 +20,9 @@ public class AiChatController {
 
     @RequestMapping("/api/chat")
     @ResponseBody
+    /**
+     * 处理AI聊天请求。
+     */
     public String chat(@RequestParam("message") String message) {
         if (message == null || message.trim().isEmpty()) {
             return "请说点什么吧~ 😊";

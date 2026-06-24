@@ -8,17 +8,27 @@ import java.util.List;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
+/**
+ * 用户服务实现类，提供用户注册、登录、信息管理等业务逻辑实现。
+ */
 @Service
 public class UserServiceImpl implements UserService {
 
     @Resource
     private UserMapper userMapper;
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public List<User> getAllUser() {
         return userMapper.getAllUser();
     }
 
+    /**
+     * 分页获取用户列表。
+     */
     @Override
     public PageResult<User> getUserByPage(int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -27,6 +37,9 @@ public class UserServiceImpl implements UserService {
         return new PageResult<>(data, pageNum, pageSize, totalCount);
     }
 
+    /**
+     * 新增数据。
+     */
     @Override
     public void addUser(User user) {
         // 使用BCrypt加密密码
@@ -34,6 +47,9 @@ public class UserServiceImpl implements UserService {
         userMapper.addUser(user);
     }
 
+    /**
+     * 处理用户登录请求。
+     */
     @Override
     public User login(String username, String password) {
         User user = userMapper.getUserByName(username);
@@ -54,41 +70,65 @@ public class UserServiceImpl implements UserService {
         return null;
     }
 
+    /**
+     * 根据用户名查询用户。
+     */
     @Override
     public User getUserByName(String username) {
         return userMapper.getUserByName(username);
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public int getUserCount() {
         return userMapper.getUserCount();
     }
 
+    /**
+     * 获取所有用户列表。
+     */
     @Override
     public List<User> getAllUsers() {
         return userMapper.getAllUser();
     }
 
+    /**
+     * 根据ID查询用户。
+     */
     @Override
     public User getUserById(int id) {
         return userMapper.getUserById(id);
     }
 
+    /**
+     * 根据邮箱查询用户。
+     */
     @Override
     public User getUserByEmail(String email) {
         return userMapper.getUserByEmail(email);
     }
 
+    /**
+     * 更新数据。
+     */
     @Override
     public void updateUser(User user) {
         userMapper.updateUser(user);
     }
 
+    /**
+     * 删除数据。
+     */
     @Override
     public void deleteUser(int id) {
         userMapper.deleteUser(id);
     }
 
+    /**
+     * 处理用户注册请求。
+     */
     @Override
     public void register(String username, String password, String name, String phone, String address, String email, String isadmin) {
         // 使用BCrypt加密密码
@@ -132,6 +172,9 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    /**
+     * 分页获取未审核用户列表。
+     */
     @Override
     public PageResult<User> getUnverifiedUsers(int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -140,9 +183,15 @@ public class UserServiceImpl implements UserService {
         return new PageResult<>(data, pageNum, pageSize, totalCount);
     }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public int getUnverifiedCount() { return userMapper.getUnverifiedCount(); }
 
+    /**
+     * 分页获取骑手列表。
+     */
     @Override
     public PageResult<User> getRidersByPage(int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
@@ -151,18 +200,30 @@ public class UserServiceImpl implements UserService {
         return new PageResult<>(data, pageNum, pageSize, totalCount);
     }
 
+    /**
+     * 执行对应业务操作。
+     */
     @Override
     public void verifyUser(int id) { userMapper.verifyUser(id); }
 
+    /**
+     * 执行对应业务操作。
+     */
     @Override
     public void freezeUser(int id) { userMapper.freezeUser(id); }
 
+    /**
+     * 执行对应业务操作。
+     */
     @Override
     public void unfreezeUser(int id) { userMapper.unfreezeUser(id); }
 
     @Override
     public void setUserAdmin(int id, String isadmin) { userMapper.setUserAdmin(id, isadmin); }
 
+    /**
+     * 查询获取数据。
+     */
     @Override
     public int getRiderCount() { return userMapper.getRiderCount(); }
 

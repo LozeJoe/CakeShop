@@ -6,6 +6,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 
+
+/**
+ * 用户实体类。
+ */
 @Data
 public class User {
     int id;

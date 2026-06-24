@@ -13,6 +13,10 @@ import javax.servlet.http.HttpSession;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * 订单控制器，处理用户下单、订单查看、订单操作及骑手配送等订单相关请求。
+ */
 @RequestMapping("/order")
 @Controller
 public class OrderController {
@@ -33,6 +37,9 @@ public class OrderController {
     private com.service.RiderChatService riderChatService;
 
     @RequestMapping("/orderList")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView orderList(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -58,6 +65,9 @@ public class OrderController {
     }
 
     @RequestMapping("/myOrder")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView myOrder(@RequestParam(value = "page", defaultValue = "1") int page,
                                 @RequestParam(value = "keyword", required = false) String keyword,
                                 HttpServletRequest request) {
@@ -98,6 +108,9 @@ public class OrderController {
     }
 
     @RequestMapping("/createOrder")
+    /**
+     * 创建新订单。
+     */
     public ModelAndView createOrder(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {
@@ -131,6 +144,9 @@ public class OrderController {
     }
 
     @RequestMapping("/toPay")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView toPay(@RequestParam("orderId") String orderId) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -157,6 +173,9 @@ public class OrderController {
     }
 
     @RequestMapping("/pay")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView pay(@RequestParam("orderId") String orderId,
                            @RequestParam("paytype") int paytype,
                            HttpServletRequest request) {
@@ -188,6 +207,9 @@ public class OrderController {
     }
 
     @RequestMapping("/detail")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView detail(@RequestParam("orderId") String orderId) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -215,6 +237,9 @@ public class OrderController {
     }
 
     @RequestMapping("/cancelOrder")
+    /**
+     * 取消指定订单。
+     */
     public ModelAndView cancelOrder(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -278,6 +303,9 @@ public class OrderController {
     }
 
     @RequestMapping("/review")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView reviewOrder(@RequestParam("orderId") String orderId,
                                      @RequestParam("rating") int rating,
                                      @RequestParam("content") String content,
@@ -311,6 +339,9 @@ public class OrderController {
 
     // ═══════════════ 用户-骑手对话 ═══════════════
     @RequestMapping("/chat")
+    /**
+     * 处理AI聊天请求。
+     */
     public ModelAndView chat(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
@@ -327,6 +358,9 @@ public class OrderController {
     }
 
     @RequestMapping("/chatSend")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView chatSend(@RequestParam("orderId") String orderId,
                                   @RequestParam("content") String content,
                                   HttpServletRequest request) {
@@ -340,6 +374,9 @@ public class OrderController {
     }
 
     @RequestMapping("/reorder")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView reorder(@RequestParam("orderId") String orderId, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         

@@ -15,6 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
 import java.util.Map;
 
+
+/**
+ * 骑手服务接口，定义骑手注册、登录、接单、配送等业务方法。
+ */
 @Service
 public class RiderService {
 
@@ -37,6 +41,9 @@ public class RiderService {
         this.userService = userService;
     }
 
+    /**
+     * 处理用户登录请求。
+     */
     public User login(String username, String password) {
         // Rider login: isadmin='2'，使用 BCrypt 验证
         User user = userMapper.getUserByName(username);
@@ -74,15 +81,24 @@ public class RiderService {
         }
     }
 
+    /**
+     * 查询获取数据。
+     */
     public User getById(int id) {
         return userMapper.getUserById(id);
     }
 
+    /**
+     * 更新用户个人信息。
+     */
     public void updateProfile(User rider) {
         userMapper.updateUser(rider);
     }
 
     // 待接单列表
+    /**
+     * 查询获取数据。
+     */
     public PageResult<Order> getPendingOrders(int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
         List<Order> data = orderMapper.getPendingOrders(offset, pageSize);
@@ -91,17 +107,26 @@ public class RiderService {
     }
 
     // 待取货订单 (status=3)
+    /**
+     * 查询获取数据。
+     */
     public PageResult<Order> getRiderPickupOrders(int riderId, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
         return new PageResult<>(orderMapper.getRiderPickupOrders(riderId, offset, pageSize), pageNum, pageSize, orderMapper.getRiderPickupCount(riderId));
     }
     // 配送中订单 (status=4)
+    /**
+     * 查询获取数据。
+     */
     public PageResult<Order> getRiderDeliveringOrders(int riderId, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
         return new PageResult<>(orderMapper.getRiderDeliveringOrders(riderId, offset, pageSize), pageNum, pageSize, orderMapper.getRiderDeliveringCount(riderId));
     }
 
     // 骑手已完成的订单
+    /**
+     * 查询获取数据。
+     */
     public PageResult<Order> getRiderCompletedOrders(int riderId, int pageNum, int pageSize) {
         int offset = (pageNum - 1) * pageSize;
         List<Order> data = orderMapper.getRiderCompletedOrders(riderId, offset, pageSize);
@@ -110,16 +135,25 @@ public class RiderService {
     }
 
     // 接单
+    /**
+     * 骑手接单操作。
+     */
     public void acceptOrder(String orderId, int riderId) {
         orderService.acceptOrder(orderId, riderId);
     }
 
     // 开始配送
+    /**
+     * 执行对应业务操作。
+     */
     public void startDelivery(String orderId, int riderId) {
         orderService.startDelivery(orderId, riderId);
     }
 
     // 确认送达
+    /**
+     * 执行对应业务操作。
+     */
     public void completeDelivery(String orderId, int riderId, double income) {
         orderService.completeDelivery(orderId, riderId, income);
         // Update rider balance
@@ -160,10 +194,16 @@ public class RiderService {
         return riderMessageMapper.getUnreadCount(riderId);
     }
 
+    /**
+     * 执行对应业务操作。
+     */
     public void markMessageRead(int messageId) {
         riderMessageMapper.markAsRead(messageId);
     }
 
+    /**
+     * 执行对应业务操作。
+     */
     public void markAllMessagesRead(int riderId) {
         riderMessageMapper.markAllAsRead(riderId);
     }

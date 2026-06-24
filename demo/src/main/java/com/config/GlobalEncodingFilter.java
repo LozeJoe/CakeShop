@@ -9,11 +9,18 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
+
+/**
+ * 全局编码过滤器，统一设置请求和响应的UTF-8字符编码。
+ */
 @WebFilter(filterName = "GlobalEncodingFilter", urlPatterns = "/*")
 public class GlobalEncodingFilter implements Filter {
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    /**
+     * 执行对应业务操作。
+     */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
             throws IOException, ServletException {

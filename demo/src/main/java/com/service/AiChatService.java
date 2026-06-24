@@ -22,6 +22,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
 
+
+/**
+ * AI聊天服务类，提供AI对话的消息处理与回复生成功能。
+ */
 @Service
 public class AiChatService {
 
@@ -47,6 +51,9 @@ public class AiChatService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     @PostConstruct
+    /**
+     * 执行对应业务操作。
+     */
     public void init() {
         // 校验配置
         if (apiUrl == null || apiUrl.trim().isEmpty()) {

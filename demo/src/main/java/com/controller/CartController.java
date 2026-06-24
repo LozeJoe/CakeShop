@@ -24,6 +24,10 @@ import java.util.List;
 import java.net.URLEncoder;
 import java.util.Date;
 
+
+/**
+ * 购物车控制器，处理购物车添加、删除、修改数量及结算等购物车相关请求。
+ */
 @RequestMapping("/cart")
 @Controller
 public class CartController {
@@ -41,6 +45,9 @@ public class CartController {
     private OrderService orderService;
 
     @RequestMapping("/cartList")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView cartList(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         
@@ -76,6 +83,9 @@ public class CartController {
     }
 
     @RequestMapping("/addToCart")
+    /**
+     * 添加商品到购物车。
+     */
     public ModelAndView addToCart(@RequestParam("goodId") int goodId, 
                                    @RequestParam(value = "amount", defaultValue = "1") String amountStr,
                                    @RequestParam(value = "from", defaultValue = "index") String from,
@@ -182,6 +192,9 @@ public class CartController {
     }
 
     @RequestMapping("/updateCart")
+    /**
+     * 更新数据。
+     */
     public ModelAndView updateCart(@RequestParam("cartId") int cartId, 
                                     @RequestParam("amount") int amount,
                                     HttpServletRequest request) {
@@ -227,6 +240,9 @@ public class CartController {
     }
 
     @RequestMapping("/deleteCart")
+    /**
+     * 删除数据。
+     */
     public ModelAndView deleteCart(@RequestParam("cartId") int cartId) {
         ModelAndView modelAndView = new ModelAndView();
         
@@ -243,6 +259,9 @@ public class CartController {
     }
 
     @RequestMapping("/clearCart")
+    /**
+     * 清空购物车。
+     */
     public ModelAndView clearCart(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -265,6 +284,9 @@ public class CartController {
     }
 
     @RequestMapping("/addOne")
+    /**
+     * 新增数据。
+     */
     public ModelAndView addOne(@RequestParam("cartId") int cartId, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -301,6 +323,9 @@ public class CartController {
     }
 
     @RequestMapping("/subOne")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView subOne(@RequestParam("cartId") int cartId, HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
 
@@ -334,6 +359,9 @@ public class CartController {
     }
 
     @RequestMapping("/pay")
+    /**
+     * 执行对应业务操作。
+     */
     public ModelAndView pay(HttpServletRequest request) {
         ModelAndView modelAndView = new ModelAndView();
         try {

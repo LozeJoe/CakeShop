@@ -32,6 +32,9 @@ public class SystemConfigService {
     }
 
     @PostConstruct
+    /**
+     * 初始化方法。
+     */
     public void init() {
         load();
     }
@@ -53,6 +56,9 @@ public class SystemConfigService {
         }
     }
 
+    /**
+     * 新增数据记录。
+     */
     public void save() {
         try {
             Files.createDirectories(CONFIG_FILE.getParent());
@@ -64,16 +70,25 @@ public class SystemConfigService {
         }
     }
 
+    /**
+     * 查询获取数据。
+     */
     public String get(String key) {
         return props.getProperty(key, defaults.get(key));
     }
 
+    /**
+     * 更新数据处理。
+     */
     public void set(String key, String value) {
         if (value != null && !value.trim().isEmpty()) {
             props.setProperty(key, value.trim());
         }
     }
 
+    /**
+     * 更新所有系统配置。
+     */
     public void updateAll(Map<String, String> values) {
         for (Map.Entry<String, String> e : values.entrySet()) {
             set(e.getKey(), e.getValue());
@@ -81,6 +96,9 @@ public class SystemConfigService {
         save();
     }
 
+    /**
+     * 获取所有系统配置。
+     */
     public Map<String, String> getAll() {
         Map<String, String> result = new LinkedHashMap<>();
         for (String key : defaults.keySet()) {
@@ -89,6 +107,9 @@ public class SystemConfigService {
         return result;
     }
 
+    /**
+     * 获取默认系统配置。
+     */
     public Map<String, String> getDefaults() {
         return new LinkedHashMap<>(defaults);
     }
